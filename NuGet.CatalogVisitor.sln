@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.CatalogVisitor", "NuGet.CatalogVisitor.csproj", "{570E0F42-E519-4A97-B609-AFB47087E0EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Replication", "..\NuGet.Replication\NuGet.Replication.csproj", "{31B3D5A7-F862-4B4D-97AB-6F8088B35E67}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{570E0F42-E519-4A97-B609-AFB47087E0EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{570E0F42-E519-4A97-B609-AFB47087E0EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{570E0F42-E519-4A97-B609-AFB47087E0EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{570E0F42-E519-4A97-B609-AFB47087E0EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31B3D5A7-F862-4B4D-97AB-6F8088B35E67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31B3D5A7-F862-4B4D-97AB-6F8088B35E67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31B3D5A7-F862-4B4D-97AB-6F8088B35E67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31B3D5A7-F862-4B4D-97AB-6F8088B35E67}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
