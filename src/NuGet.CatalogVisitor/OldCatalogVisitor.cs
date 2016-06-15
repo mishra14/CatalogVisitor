@@ -215,38 +215,38 @@ public class OldCatalogVisitor
         return new PackageData(tempId);
     }
 
-    public void DownloadIDVersions()
-    {
-        List<Tuple<string, NuGetVersion>> newIdVersions = new List<Tuple<string, NuGetVersion>>();
-        newIdVersions = GetNewIDVersions();
+    //public void DownloadIDVersions()
+    //{
+    //    List<Tuple<string, NuGetVersion>> newIdVersions = new List<Tuple<string, NuGetVersion>>();
+    //    newIdVersions = GetNewIDVersions();
 
-        foreach (Tuple<string, NuGetVersion> item in newIdVersions)
-        {
-            var path = "https:\\api.nuget.org\v3-flatcontainer\\" + item.Item1 + '\\' + item.Item2.ToString() + ".nupkg";
+    //    foreach (Tuple<string, NuGetVersion> item in newIdVersions)
+    //    {
+    //        var path = "https:\\api.nuget.org\v3-flatcontainer\\" + item.Item1 + '\\' + item.Item2.ToString() + ".nupkg";
 
-            ZipPackage packageContent = new ZipPackage(path);
-            var fileContent = packageContent.GetContentFiles();
-            var cont = "";
-            foreach (var fileCont in fileContent)
-            {
-                cont += fileCont;
-            }
+    //        ZipPackage packageContent = new ZipPackage(path);
+    //        var fileContent = packageContent.GetContentFiles();
+    //        var cont = "";
+    //        foreach (var fileCont in fileContent)
+    //        {
+    //            cont += fileCont;
+    //        }
 
-            var fileName = item.Item1.Replace(".", "-");
-            var newPath = $"C:\\CatalogCache\\NewIDVersions\\{fileName}";
-            using (System.Net.Http.HttpClient hc = new System.Net.Http.HttpClient())
-            {
-                if (File.Exists(newPath))
-                {
-                    File.AppendAllText(newPath, cont);
-                }
-                else
-                {
-                    File.WriteAllText(newPath, cont);
-                }
-            }
-        }
-    }
+    //        var fileName = item.Item1.Replace(".", "-");
+    //        var newPath = $"C:\\CatalogCache\\NewIDVersions\\{fileName}";
+    //        using (System.Net.Http.HttpClient hc = new System.Net.Http.HttpClient())
+    //        {
+    //            if (File.Exists(newPath))
+    //            {
+    //                File.AppendAllText(newPath, cont);
+    //            }
+    //            else
+    //            {
+    //                File.WriteAllText(newPath, cont);
+    //            }
+    //        }
+    //    }
+    //}
 
     public IEnumerable<List<NuGetVersion>> GetIDSPackages(string[] ids)
     {

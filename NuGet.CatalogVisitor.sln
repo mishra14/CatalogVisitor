@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{00A40CB8-E0FF-4236-B172-7BC9C2A441C8}"
+	ProjectSection(SolutionItems) = preProject
+		src\TestConsole\App.config = src\TestConsole\App.config
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{22A7C506-D53D-4386-9DBE-C2F7890C8E16}"
 EndProject

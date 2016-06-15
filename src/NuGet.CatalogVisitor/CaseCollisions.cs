@@ -134,7 +134,7 @@ namespace NuGet.CatalogVisitor
             var packages = _list4;
 
             Console.WriteLine("FileContent.Count: {0}", fileContent.Count);
-            Console.WriteLine("packages.empty?: {0}", packages.IsEmpty());
+            Console.WriteLine("packages.empty?: {0}", !packages.Any());
 
             //go over each ID in data structure
             foreach (var package in packages)

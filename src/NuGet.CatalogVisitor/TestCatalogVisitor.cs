@@ -3,7 +3,7 @@ using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 
-internal class TestCatalogVisitor : ICatalogVisitor
+internal class TestCatalogVisitor
 {
     private readonly List<PackageMetadata> _list = new List<PackageMetadata>();
 
