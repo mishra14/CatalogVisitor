@@ -55,9 +55,9 @@ namespace NuGet.CatalogVisitor
             }
         }
 
-        public static async Task<HttpCatalogVisitor> FlagAllDiffIDs()
+        public static async Task<OldCatalogVisitor> FlagAllDiffIDs()
         {
-            var v = new HttpCatalogVisitor();
+            var v = new OldCatalogVisitor();
             _dateTimes.Clear();
             var fileDate = GetCursor();
             List<string> fileContent = new List<string>();
@@ -73,7 +73,7 @@ namespace NuGet.CatalogVisitor
                 string json;
                 var element = elem;
                 string url = "https://api.nuget.org/v3-flatcontainer/" + element.ToLower() + "/index.json";
-                json = await HttpCatalogVisitor.GetContent(url);
+                json = await OldCatalogVisitor.GetContent(url);
                 JObject root = JObject.Parse(json);
                 JArray versions = (JArray)root["versions"];
                 foreach (var version in versions)
@@ -87,7 +87,7 @@ namespace NuGet.CatalogVisitor
                     {
                         Console.WriteLine($"[GET] {tempUrl}");
 
-                        var nuspecString = await HttpCatalogVisitor.GetContent(tempUrl);
+                        var nuspecString = await OldCatalogVisitor.GetContent(tempUrl);
                         //trouble!!!
 
                         if (!nuspecString.Equals(null))

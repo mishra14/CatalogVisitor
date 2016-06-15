@@ -11,7 +11,7 @@ namespace TestConsole
         static void Main()
         {
             /* URI of initial NuGet API page */
-            var visitor = HttpCatalogVisitor.CreateHCV(new Uri("https://api.nuget.org/v3/index.json")).Result;
+            var visitor = OldCatalogVisitor.CreateHCV(new Uri("https://api.nuget.org/v3/index.json")).Result;
 
             /*
              IEnumerable<PackageMetadata> myData = visitor.GetPackages();

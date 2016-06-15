@@ -15,6 +15,8 @@ public interface ICatalogVisitor
 
     Task<IReadOnlyList<PackageMetadata>> GetPackages(DateTimeOffset start, DateTimeOffset end);
 
+    Task<IReadOnlyList<PackageMetadata>> GetPackages(FileCursor cursor);
+
     /// <summary>
     /// Returns latest entry for each Id and Version in the range.
     /// that matches the packageIdPattern.
