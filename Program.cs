@@ -1,6 +1,4 @@
-﻿using NuGet.Versioning;
-using System;
-using System.Collections.Generic;
+﻿using System;
 
 namespace NuGet.CatalogVisitor
 {
@@ -29,7 +27,7 @@ namespace NuGet.CatalogVisitor
                 }
             }
             */
-            
+
             /*
             var idVersions = visitor.GetNewIDVersions();
             foreach (Tuple<string, NuGetVersion> idVersion in idVersions)
@@ -37,12 +35,11 @@ namespace NuGet.CatalogVisitor
                 Console.WriteLine("New ID/Version Pair - ID: {0}, Version: {1}", idVersion.Item1, idVersion.Item2);
             }
             */
-            
 
             visitor.DownloadIDVersions();
 
 
-            //var temp = HttpCatalogVisitor.FlagAllDiffIDs3().Result;
+            //var temp = CaseCollisions.FlagAllDiffIDs().Result;
 
         }
     }
