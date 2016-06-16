@@ -100,6 +100,7 @@
     <Compile Include="CatalogVisitorContext.cs" />
     <Compile Include="FileCursor.cs" />
     <Compile Include="HttpCatalogVisitor.cs" />
+    <Compile Include="HttpPackageDownloader.cs" />
     <Compile Include="ICursor.cs" />
     <Compile Include="MemoryCursor.cs" />
     <Compile Include="OldCatalogVisitor.cs" />

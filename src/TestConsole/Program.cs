@@ -1,4 +1,5 @@
 ﻿using NuGet.CatalogVisitor;
+using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,9 @@ namespace TestConsole
         {
             CatalogVisitorContext context = new CatalogVisitorContext();
             HttpCatalogVisitor visitor = new HttpCatalogVisitor(context);
+            HttpPackageDownloader HPD = new HttpPackageDownloader();
+
+            HPD.DownloadPackage("Passive", new NuGetVersion("0.2.0"), "C:\\CatalogCache\\CurrentHPD.txt");
 
             /* Gets all packages
             IReadOnlyList<PackageMetadata> packages = visitor.GetPackages().Result;
@@ -22,6 +26,7 @@ namespace TestConsole
             }
             */
 
+            /* Gets latest version for each ID from date in cursor to now.
             FileCursor cursor = new FileCursor();
             cursor.Date = new DateTimeOffset(2015, 2, 1, 7, 0, 0, new TimeSpan(-8, 0, 0)); // from that date to now
             cursor.CursorPath = "C:\\CatalogCache\\mainCursor.txt";
@@ -30,6 +35,12 @@ namespace TestConsole
             {
                 Console.WriteLine("Package - ID: {0}, Version: {1}", package.Id, package.Version);
             }
+            */
+            
+
+
+
+
 
             /*
              IEnumerable<PackageMetadata> myData = visitor.GetPackages();

@@ -42,10 +42,15 @@ namespace NuGet.CatalogVisitor
             //var contextPath = Console.ReadLine();
             var contextPath = "C:\\CatalogCache\\";
             _context.CatalogCacheFolder = contextPath;
-
-            //HttpCatalogVisitor x = FillList("https://api.nuget.org/v3/index.json").Result;
         }
 
+        /// <summary>
+        /// Fills private var _list with all id/version pairs as metadata objects.
+        /// Caching to disk *with _context.CatalogCacheFolder* (c).
+        /// Cursor support *with _cursor* (d).
+        /// </summary>
+        /// <param name="baseUrl"></param>
+        /// <returns></returns>
         public static async Task<HttpCatalogVisitor> FillList(string baseUrl)
         {
             try
@@ -55,6 +60,7 @@ namespace NuGet.CatalogVisitor
                 var v = new HttpCatalogVisitor();
                 
                 /* Get cursor date, get json string from given uri (main index.json). */
+                /* Cursor support (d). */
                 _cursor.Load(_cursor.CursorPath);
                 var fileDate = _cursor.Date;
                 string json = GetCatalogIndexUri(new Uri(baseUrl)).Result;
@@ -69,7 +75,8 @@ namespace NuGet.CatalogVisitor
                 Uri baseUri = new Uri(baseUrl);
                 var fileName = baseUri.LocalPath.Replace("/", "-");
                 var path = _context.CatalogCacheFolder.Substring(0, 15) + '\\' + fileName;
-                File.WriteAllText(path, json);
+                /* Caching to disk (c). */
+                WriteToFileFromFolder(path, json);
 
                 /* Parse json and get list of package urls so we can open 3rd level. */
                 JArray items = (JArray)root["items"];
@@ -96,7 +103,8 @@ namespace NuGet.CatalogVisitor
 
                         /* Get json string in 3rd level from url in 2nd level, then write that to its own file. */
                         var json2 = await GetCatalogIndexUri(new Uri((string)items[i]["@id"]));
-                        File.WriteAllText(cachePath, json2);
+                        /* Caching to disk (c). */
+                        WriteToFileFromFolder(cachePath, json2);
 
                         /* If not XML... */
                         if (json2[0] != '<')
@@ -117,6 +125,7 @@ namespace NuGet.CatalogVisitor
                     }
                 }
                 /* Save cursor file to the time of now, return the HCV object. */
+                /* Cursor support (d). */
                 _cursor.Save();
                 return v;
             }
@@ -125,13 +134,23 @@ namespace NuGet.CatalogVisitor
                 throw ex;
             }
         }
-
+        
+        /// <summary>
+        /// Gets all packages in _list.
+        /// </summary>
+        /// <returns></returns>
         public async Task<IReadOnlyList<PackageMetadata>> GetPackages()
         {
             HttpCatalogVisitor myHCV = await FillList("https://api.nuget.org/v3/index.json");
             return _list;
         }
 
+        /// <summary>
+        /// Gets packages from when cursor is sitting to now.
+        /// Cursor support (d).
+        /// </summary>
+        /// <param name="cursor"></param>
+        /// <returns></returns>
         public Task<IReadOnlyList<PackageMetadata>> GetPackages(FileCursor cursor)
         {
             var packages = GetPackages(cursor.Date, DateTimeOffset.UtcNow);
@@ -139,6 +158,12 @@ namespace NuGet.CatalogVisitor
             return packages;
         }
 
+        /// <summary>
+        /// Discovers all rolled up latest entries for each id/version in a date range (b).
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
         public async Task<IReadOnlyList<PackageMetadata>> GetPackages(DateTimeOffset start, DateTimeOffset end)
         {
             // Call GetPackages and then filter to latest ID version.
@@ -170,9 +195,39 @@ namespace NuGet.CatalogVisitor
         }
 
         // Figure out globbing!!!
-        public Task<IReadOnlyList<PackageMetadata>> GetPackages(DateTimeOffset start, DateTimeOffset end, string packageIdPattern)
+        public async Task<IReadOnlyList<PackageMetadata>> GetPackages(DateTimeOffset start, DateTimeOffset end, string packageIdPattern)
         {
-            throw new NotImplementedException();
+            var myList = await GetPackages();
+            List<PackageMetadata> newList = new List<PackageMetadata>();
+            foreach (var element in myList)
+            {
+                // Add to empty list if in between start and end dates.
+                if (element.CommitTimeStamp >= start && element.CommitTimeStamp <= end)
+                {
+                    if (newList.Contains(element))
+                    {
+                        var index = newList.IndexOf(element);
+                        var containedElement = newList.ElementAt<PackageMetadata>(index);
+                        if (element.Version > containedElement.Version)
+                        {
+                            //if (Matches globbing pattern)
+                                {
+                                // Replace most recent version in list.
+                                newList.Remove(containedElement);
+                                newList.Add(element);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //if (Matches globbing pattern)
+                        {
+                            newList.Add(element);
+                        }
+                    }
+                }
+            }
+            return newList;
         }
 
         /// <summary>
@@ -185,6 +240,12 @@ namespace NuGet.CatalogVisitor
             return _list;
         }
 
+        /// <summary>
+        /// Discover all catalog entries in a date range (a).
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
         public async Task<IReadOnlyList<PackageMetadata>> GetRawPackages(DateTimeOffset start, DateTimeOffset end)
         {
             // implement this first
@@ -193,7 +254,7 @@ namespace NuGet.CatalogVisitor
             foreach (var element in myList)
             {
                 //add to empty list if in between start and end dates
-                if (element.CommitTimeStamp > start && element.CommitTimeStamp < end)
+                if (element.CommitTimeStamp >= start && element.CommitTimeStamp <= end)
                 {
                     newList.Add(element);
                 }
@@ -201,6 +262,11 @@ namespace NuGet.CatalogVisitor
             return newList;
         }
 
+        /// <summary>
+        /// Opens file from uri, reads content, returns as string.
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <returns></returns>
         public static async Task<string> GetCatalogIndexUri(Uri uri)
         {
             using (HttpClient hc = new HttpClient())
@@ -219,6 +285,16 @@ namespace NuGet.CatalogVisitor
             }
         }
 
+        public static void WriteToFileFromFolder(string folder, string content)
+        {
+            File.WriteAllText(folder, content);
+        }
+
+        /// <summary>
+        /// Reads json from a url, returns it as a JObject.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
         private static JObject GetJson(string url)
         {
             var json = GetCatalogIndexUri(new Uri(url)).Result;
