@@ -9,13 +9,17 @@ namespace NuGet.CatalogVisitor
 {
     public class FileCursor : ICursor
     {
+        public FileCursor()
+        {
+
+        }
         public string CursorPath { get; set; }
         public DateTimeOffset Date { get; set; }
         public void Save()
         {
             File.WriteAllText(CursorPath, Date.ToString("o"));
         }
-        public static FileCursor Load(string path)
+        public FileCursor Load(string path)
         {
             DateTimeOffset fileDate = DateTimeOffset.MinValue;
 

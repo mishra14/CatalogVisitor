@@ -34,6 +34,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NuGet.Versioning, Version=3.4.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Versioning.3.4.3\lib\net45\NuGet.Versioning.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -49,8 +53,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\test\NuGet.CatalogVisitor.Tests\NuGet.CatalogVisitor.Tests.csproj">
+      <Project>{b94e3eb2-2d6d-4bb8-925d-0bb6242031c4}</Project>
+      <Name>NuGet.CatalogVisitor.Tests</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGet.CatalogVisitor\NuGet.CatalogVisitor.csproj">
       <Project>{570e0f42-e519-4a97-b609-afb47087e0ea}</Project>
       <Name>NuGet.CatalogVisitor</Name>

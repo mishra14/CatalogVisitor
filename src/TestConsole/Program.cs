@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NuGet.CatalogVisitor;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,8 +11,25 @@ namespace TestConsole
     {
         static void Main()
         {
-            /* URI of initial NuGet API page */
-            var visitor = OldCatalogVisitor.CreateHCV(new Uri("https://api.nuget.org/v3/index.json")).Result;
+            CatalogVisitorContext context = new CatalogVisitorContext();
+            HttpCatalogVisitor visitor = new HttpCatalogVisitor(context);
+
+            /* Gets all packages
+            IReadOnlyList<PackageMetadata> packages = visitor.GetPackages().Result;
+            foreach (PackageMetadata package in packages)
+            {
+                Console.WriteLine("Package - ID: {0}, Version: {1}", package.Id, package.Version);
+            }
+            */
+
+            FileCursor cursor = new FileCursor();
+            cursor.Date = new DateTimeOffset(2015, 2, 1, 7, 0, 0, new TimeSpan(-8, 0, 0)); // from that date to now
+            cursor.CursorPath = "C:\\CatalogCache\\mainCursor.txt";
+            IReadOnlyList<PackageMetadata> packages = visitor.GetPackages(cursor).Result;
+            foreach (PackageMetadata package in packages)
+            {
+                Console.WriteLine("Package - ID: {0}, Version: {1}", package.Id, package.Version);
+            }
 
             /*
              IEnumerable<PackageMetadata> myData = visitor.GetPackages();
@@ -39,8 +57,6 @@ namespace TestConsole
                 Console.WriteLine("New ID/Version Pair - ID: {0}, Version: {1}", idVersion.Item1, idVersion.Item2);
             }
             */
-
-            // visitor.DownloadIDVersions();
 
 
             //var temp = CaseCollisions.FlagAllDiffIDs().Result;

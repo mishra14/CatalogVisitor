@@ -10,165 +10,165 @@ using System.Threading.Tasks;
 
 public class OldCatalogVisitor
 {
-    private static readonly List<PackageMetadata> _list = new List<PackageMetadata>();
-    private static List<PackageMetadata> _items2 = new List<PackageMetadata>();
+    //private static readonly List<PackageMetadata> _list = new List<PackageMetadata>();
+    private static List<PackageMetadata> _items = new List<PackageMetadata>();
 
-    public OldCatalogVisitor()
-    {
+    //public OldCatalogVisitor()
+    //{
 
-    }
+    //}
 
-    public IEnumerable<PackageMetadata> GetPackages()
-    {
-        return _list;
-    }
+    //public IEnumerable<PackageMetadata> GetPackages()
+    //{
+    //    return _list;
+    //}
 
-    public static Task<string> GetContent(string url)
-    {
-        return GetContentUri(new Uri(url));
-    }
+    //public static Task<string> GetContent(string url)
+    //{
+    //    return GetContentUri(new Uri(url));
+    //}
 
 
-    public static async Task<string> GetContentUri(Uri uri)
-    {
-        using (System.Net.Http.HttpClient hc = new System.Net.Http.HttpClient())
-        using (HttpResponseMessage response = await hc.GetAsync(uri))
-        using (HttpContent content = response.Content)
-        {
-            if (response.Equals(null))
-            {
-                //response.EnsureSuccessStatusCode();
-                return null;
-            }
-            else
-            {
-                return await content.ReadAsStringAsync();
-            }
-        }
-    }
+    //public static async Task<string> GetContentUri(Uri uri)
+    //{
+    //    using (HttpClient hc = new HttpClient())
+    //    using (HttpResponseMessage response = await hc.GetAsync(uri))
+    //    using (HttpContent content = response.Content)
+    //    {
+    //        if (response.Equals(null))
+    //        {
+    //            //response.EnsureSuccessStatusCode();
+    //            return null;
+    //        }
+    //        else
+    //        {
+    //            return await content.ReadAsStringAsync();
+    //        }
+    //    }
+    //}
 
-    /* Default cursor path */
-    private static string CursorPath = "C:\\CatalogCache\\cursor.txt";
+    ///* Default cursor path */
+    //private static string CursorPath = "C:\\CatalogCache\\cursor.txt";
 
-    public static void SetCursorPath(string cursorPath)
-    {
-        CursorPath = cursorPath;
-    }
+    //public static void SetCursorPath(string cursorPath)
+    //{
+    //    CursorPath = cursorPath;
+    //}
 
-    public static DateTimeOffset GetMinCursor()
-    {
-        Console.WriteLine("Please insert path to cursor file (.txt): ");
-        var cursorPath = Console.ReadLine();
-        OldCatalogVisitor.SetCursorPath(cursorPath);
+    //public static DateTimeOffset GetMinCursor()
+    //{
+    //    Console.WriteLine("Please insert path to cursor file (.txt): ");
+    //    var cursorPath = Console.ReadLine();
+    //    OldCatalogVisitor.SetCursorPath(cursorPath);
 
-        DateTimeOffset fileDate = DateTimeOffset.MinValue;
+    //    DateTimeOffset fileDate = DateTimeOffset.MinValue;
 
-        if (File.Exists(CursorPath))
-        {
-            var cursorText = File.ReadAllText(CursorPath);
-            fileDate = DateTimeOffset.Parse(cursorText);
-        }
+    //    if (File.Exists(CursorPath))
+    //    {
+    //        var cursorText = File.ReadAllText(CursorPath);
+    //        fileDate = DateTimeOffset.Parse(cursorText);
+    //    }
 
-        return fileDate;
-    }
+    //    return fileDate;
+    //}
 
-    public static DateTimeOffset GetNowCursor()
-    {
-        Console.WriteLine("Please insert path to cursor file (.txt): ");
-        var cursorPath = Console.ReadLine();
-        OldCatalogVisitor.SetCursorPath(cursorPath);
+    //public static DateTimeOffset GetNowCursor()
+    //{
+    //    Console.WriteLine("Please insert path to cursor file (.txt): ");
+    //    var cursorPath = Console.ReadLine();
+    //    OldCatalogVisitor.SetCursorPath(cursorPath);
 
-        DateTimeOffset fileDate = DateTimeOffset.Now;
+    //    DateTimeOffset fileDate = DateTimeOffset.Now;
 
-        if (File.Exists(CursorPath))
-        {
-            var cursorText = File.ReadAllText(CursorPath);
-            fileDate = DateTimeOffset.Parse(cursorText);
-        }
+    //    if (File.Exists(CursorPath))
+    //    {
+    //        var cursorText = File.ReadAllText(CursorPath);
+    //        fileDate = DateTimeOffset.Parse(cursorText);
+    //    }
 
-        return fileDate;
-    }
+    //    return fileDate;
+    //}
 
-    public static void SaveCursor(DateTimeOffset date)
-    {
-        try
-        {
-            File.WriteAllText(CursorPath, date.ToString("o"));
-        }
-        catch
-        {
-            // fix this later
-        }
-    }
+    //public static void SaveCursor(DateTimeOffset date)
+    //{
+    //    try
+    //    {
+    //        File.WriteAllText(CursorPath, date.ToString("o"));
+    //    }
+    //    catch
+    //    {
+    //        // fix this later
+    //    }
+    //}
 
-    public static async Task<OldCatalogVisitor> CreateHCV(Uri baseUri)
-    {
-        try
-        {
-            string json;
+    //public static async Task<OldCatalogVisitor> CreateHCV(Uri baseUri)
+    //{
+    //    try
+    //    {
+    //        string json;
 
-            var v = new OldCatalogVisitor();
+    //        var v = new OldCatalogVisitor();
 
-            var fileDate = GetMinCursor();
+    //        var fileDate = GetMinCursor();
 
-            json = await GetContentUri(baseUri);
-            JObject root = JObject.Parse(json);
-            JArray resources = (JArray)root["resources"];
-            string catalogUri = (string)resources.Last["@id"];
-            json = await GetContent(catalogUri);
-            var fileName = baseUri.LocalPath.Replace("/", "-");
-            var path = $"C:\\CatalogCache\\{fileName}";
-            File.WriteAllText(path, json);
+    //        json = await GetContentUri(baseUri);
+    //        JObject root = JObject.Parse(json);
+    //        JArray resources = (JArray)root["resources"];
+    //        string catalogUri = (string)resources.Last["@id"];
+    //        json = await GetContent(catalogUri);
+    //        var fileName = baseUri.LocalPath.Replace("/", "-");
+    //        var path = $"C:\\CatalogCache\\{fileName}";
+    //        File.WriteAllText(path, json);
 
-            root = JObject.Parse(json);
-            JArray items = (JArray)root["items"];
-            var pageCommitTime = DateTimeOffset.MinValue;
-            /* items.Count when you have time */
-            for (int i = 0; i < items.Count; i++)
-            {
-                pageCommitTime = items[i]["commitTimeStamp"].ToObject<DateTimeOffset>();
-                Uri newUri = new Uri((string)items[i]["@id"]);
-                fileName = newUri.LocalPath.Replace("/", "-");
-                var cachePath = path = $"C:\\CatalogCache\\{fileName}";
+    //        root = JObject.Parse(json);
+    //        JArray items = (JArray)root["items"];
+    //        var pageCommitTime = DateTimeOffset.MinValue;
+    //        /* items.Count when you have time */
+    //        for (int i = 0; i < items.Count; i++)
+    //        {
+    //            pageCommitTime = items[i]["commitTimeStamp"].ToObject<DateTimeOffset>();
+    //            Uri newUri = new Uri((string)items[i]["@id"]);
+    //            fileName = newUri.LocalPath.Replace("/", "-");
+    //            var cachePath = path = $"C:\\CatalogCache\\{fileName}";
 
-                JObject root2 = null;
+    //            JObject root2 = null;
 
-                // load file from disk if it is older than the cursor and exists
-                if (fileDate >= pageCommitTime && File.Exists(cachePath))
-                {
-                    Console.WriteLine($"[CACHE] {newUri.AbsoluteUri}");
-                    root2 = JObject.Parse(File.ReadAllText(cachePath));
-                }
-                else
-                {
-                    Console.WriteLine($"[GET] {newUri.AbsoluteUri}");
+    //            // load file from disk if it is older than the cursor and exists
+    //            if (fileDate >= pageCommitTime && File.Exists(cachePath))
+    //            {
+    //                Console.WriteLine($"[CACHE] {newUri.AbsoluteUri}");
+    //                root2 = JObject.Parse(File.ReadAllText(cachePath));
+    //            }
+    //            else
+    //            {
+    //                Console.WriteLine($"[GET] {newUri.AbsoluteUri}");
 
-                    var json2 = await GetContent((string)items[i]["@id"]);
-                    File.WriteAllText(cachePath, json2);
+    //                var json2 = await GetContent((string)items[i]["@id"]);
+    //                File.WriteAllText(cachePath, json2);
 
-                    if (json2[0] != '<')
-                    {
-                        root2 = JObject.Parse(json2);
-                        JArray tempItems = (JArray)root2["items"];
+    //                if (json2[0] != '<')
+    //                {
+    //                    root2 = JObject.Parse(json2);
+    //                    JArray tempItems = (JArray)root2["items"];
 
-                        foreach (var item in tempItems)
-                        {
-                            var metadata = GetMetadata((JObject)item);
+    //                    foreach (var item in tempItems)
+    //                    {
+    //                        var metadata = GetMetadata((JObject)item);
 
-                            _list.Add(metadata);
-                            _items2.Add(metadata);
-                        }
-                    }
-                }
-            }
-            SaveCursor(DateTimeOffset.Now);
-            return v;
-        }
-        catch (Exception ex)
-        {
-            throw ex;
-        }
-    }
+    //                        _list.Add(metadata);
+    //                        _items2.Add(metadata);
+    //                    }
+    //                }
+    //            }
+    //        }
+    //        SaveCursor(DateTimeOffset.Now);
+    //        return v;
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        throw ex;
+    //    }
+    //}
 
 
     public List<Tuple<string, NuGetVersion>> GetNewIDVersions()
@@ -178,16 +178,18 @@ public class OldCatalogVisitor
         List<Tuple<string, NuGetVersion>> newIDVersions = new List<Tuple<string, NuGetVersion>>();
 
         /* Create new Cursor File w current date */
-        DateTimeOffset fileDate = GetMinCursor();
+        FileCursor cursor = new FileCursor();
+        cursor.Date = DateTimeOffset.UtcNow;
+        DateTimeOffset fileDate = cursor.Date;
             
 
         DateTimeOffset tempDate;
         /* items2.count */
         for (int i = 0; i < 10; i++)
         {
-            tempId = (string)_items2[i].Id;
-            tempVersion = NuGetVersion.Parse(_items2[i].Version.ToString());
-            tempDate = DateTimeOffset.Parse(_items2[i].CommitTimeStamp.ToString());
+            tempId = (string)_items[i].Id;
+            tempVersion = NuGetVersion.Parse(_items[i].Version.ToString());
+            tempDate = DateTimeOffset.Parse(_items[i].CommitTimeStamp.ToString());
             /* Adds only changed or new catalog pages based on cursor */
             if (tempDate > fileDate)
             {
@@ -195,18 +197,18 @@ public class OldCatalogVisitor
                 newIDVersions.Add(tempTuple);
             }
         }
-        SaveCursor(DateTimeOffset.Now);
+        cursor.Save();
         return newIDVersions;
     }
 
-    private static PackageMetadata GetMetadata(JObject entry)
-    {
-        var tempId = entry["nuget:id"].ToObject<string>();
-        var tempVersion = NuGetVersion.Parse(entry["nuget:version"].ToObject<string>());
-        var tempDate = DateTimeOffset.Parse(entry["commitTimeStamp"].ToObject<string>());
+    //private static PackageMetadata GetMetadata(JObject entry)
+    //{
+    //    var tempId = entry["nuget:id"].ToObject<string>();
+    //    var tempVersion = NuGetVersion.Parse(entry["nuget:version"].ToObject<string>());
+    //    var tempDate = DateTimeOffset.Parse(entry["commitTimeStamp"].ToObject<string>());
 
-        return new PackageMetadata(tempVersion, tempId, tempDate);
-    }
+    //    return new PackageMetadata(tempVersion, tempId, tempDate);
+    //}
 
     private static PackageData GetPackageData(JObject entry)
     {
@@ -255,8 +257,8 @@ public class OldCatalogVisitor
         /* _items2.Count when you have time */
         for (int j = 0; j < 10; j++)
         {
-            tempId = (string)_items2[j].Id;
-            tempVersion = NuGetVersion.Parse(_items2[j].Version.ToString());
+            tempId = (string)_items[j].Id;
+            tempVersion = NuGetVersion.Parse(_items[j].Version.ToString());
             List<NuGetVersion> newList = insideLoop(ids, tempId, tempVersion);
             yield return newList;
         }

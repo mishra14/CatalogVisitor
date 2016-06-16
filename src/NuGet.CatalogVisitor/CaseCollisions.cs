@@ -73,7 +73,7 @@ namespace NuGet.CatalogVisitor
                 string json;
                 var element = elem;
                 string url = "https://api.nuget.org/v3-flatcontainer/" + element.ToLower() + "/index.json";
-                json = await OldCatalogVisitor.GetContent(url);
+                json = await HttpCatalogVisitor.GetCatalogIndexUri(new Uri(url));
                 JObject root = JObject.Parse(json);
                 JArray versions = (JArray)root["versions"];
                 foreach (var version in versions)
@@ -87,7 +87,7 @@ namespace NuGet.CatalogVisitor
                     {
                         Console.WriteLine($"[GET] {tempUrl}");
 
-                        var nuspecString = await OldCatalogVisitor.GetContent(tempUrl);
+                        var nuspecString = await HttpCatalogVisitor.GetCatalogIndexUri(new Uri(tempUrl));
                         //trouble!!!
 
                         if (!nuspecString.Equals(null))
