@@ -60,9 +60,13 @@ namespace NuGet.CatalogVisitor.Tests
         public async Task GetPackagesCursorTest()
         {
             // Arrange
+            var tempDir = Path.Combine(Environment.GetEnvironmentVariable("temp"), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(tempDir);
+
             CatalogVisitorContext context = new CatalogVisitorContext();
             context.NoCache = true;
             context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
+            context.CatalogCacheFolder = tempDir;
 
             var testHandler = new TestMessageHandler();
 
@@ -73,9 +77,8 @@ namespace NuGet.CatalogVisitor.Tests
 
             HttpCatalogVisitor hcv = new HttpCatalogVisitor(context);
 
-            FileCursor cursor = new FileCursor();
+            MemoryCursor cursor = new MemoryCursor();
             cursor.Date = new DateTimeOffset(2015, 2, 1, 7, 0, 0, new TimeSpan(-8, 0, 0)); // from that date to now
-            cursor.CursorPath = "C:\\CatalogCache\\testCursor.txt";
 
             // Act
             var packages = await hcv.GetPackages(cursor);

@@ -19,6 +19,8 @@ namespace NuGet.CatalogVisitor
         /// <returns></returns>
         public Task DownloadPackage(string id, NuGetVersion version, string downloadDirectory)
         {
+            // https://api.nuget.org/v3-flatcontainer/{id-lower}/{version-lower}/{id-lower}.{version-lower}.nupkg
+
             var newStr = id + "\r\n" + version;
             HttpCatalogVisitor.WriteToFileFromFolder(downloadDirectory, newStr);
             return Task.Delay(0);
