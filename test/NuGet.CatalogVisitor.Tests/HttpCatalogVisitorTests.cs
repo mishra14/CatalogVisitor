@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -35,6 +32,7 @@ namespace NuGet.CatalogVisitor.Tests
             Assert.Equal(1, packages.Count);
         }
 
+        [Fact]
         public async Task GetPackagesTest()
         {
             // Arrange
@@ -58,6 +56,7 @@ namespace NuGet.CatalogVisitor.Tests
             Assert.Equal(1, packages.Count);
         }
 
+        [Fact]
         public async Task GetPackagesCursorTest()
         {
             // Arrange
@@ -85,6 +84,7 @@ namespace NuGet.CatalogVisitor.Tests
             Assert.Equal(1, packages.Count);
         }
 
+        [Fact]
         public async Task GetPackagesDatesTest()
         {
             // Arrange
@@ -109,6 +109,33 @@ namespace NuGet.CatalogVisitor.Tests
 
             // Assert
             Assert.Equal(1, packages.Count);
+        }
+
+        [Fact]
+        public void WriteToFileFromFolderTest()
+        {
+            //Arrange
+            string file = "C:\\CatalogCache\\testFile.txt";
+            string content = "Test content.";
+
+            //Act
+            HttpCatalogVisitor.WriteToFileFromFolder(file, content);
+            string fileContent = File.ReadAllText(file);
+
+            //Assert
+            Assert.Equal(content, fileContent);
+        }
+
+        [Fact]
+        public void DownloadPackageTest()
+        {
+            HttpPackageDownloader hpd = new HttpPackageDownloader();
+
+            hpd.DownloadPackage("MyID", new Versioning.NuGetVersion("1.0.0"), "C:\\CatalogCache\\testDownloadPackage.txt");
+
+            string fileContent = File.ReadAllText("C:\\CatalogCache\\testDownloadPackage.txt");
+            string expectedContent = "MyID\r\n1.0.0";
+            Assert.Equal(fileContent, expectedContent);
         }
 
         public static string GetResource(string name)

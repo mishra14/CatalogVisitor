@@ -285,9 +285,9 @@ namespace NuGet.CatalogVisitor
             }
         }
 
-        public static void WriteToFileFromFolder(string folder, string content)
+        public static void WriteToFileFromFolder(string file, string content)
         {
-            File.WriteAllText(folder, content);
+            File.WriteAllText(file, content);
         }
 
         /// <summary>
