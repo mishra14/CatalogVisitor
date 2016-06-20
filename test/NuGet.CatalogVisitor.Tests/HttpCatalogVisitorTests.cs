@@ -8,56 +8,82 @@ namespace NuGet.CatalogVisitor.Tests
 {
     public class HttpCatalogVisitorTests
     {
+        //[Fact]
+        //public async Task GetRawPackagesTest()
+        //{
+        //    // Arrange
+        //    CatalogVisitorContext context = new CatalogVisitorContext();
+        //    context.NoCache = true;
+        //    context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
+
+        //    var testHandler = new TestMessageHandler();
+
+        //    var rootIndex = GetResource("NuGet.CatalogVisitor.Tests.content.rootIndex.json");
+
+        //    testHandler.Pages.TryAdd("https://api.nuget.org/v3/index.json", rootIndex);
+        //    context.MessageHandler = testHandler;
+
+        //    HttpCatalogVisitor hcv = new HttpCatalogVisitor(context);
+
+        //    // Act
+        //    var packages = await hcv.GetRawPackages();
+
+        //    // Assert
+        //    Assert.Equal(2700, packages.Count);
+        //}
+
         [Fact]
-        public async Task GetRawPackagesTest()
+        public void GetRawPackagesTest()
         {
             // Arrange
             CatalogVisitorContext context = new CatalogVisitorContext();
             context.NoCache = true;
-            context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
+            context.FeedIndexJsonUrl = "C:\\CatalogCache\\TestJson\\index.json";
 
             var testHandler = new TestMessageHandler();
 
-            var rootIndex = GetResource("NuGet.CatalogVisitor.Tests.content.rootIndex.json");
+            //var rootIndex = GetResource("C:\\CatalogCache\\TestJson\\index.txt");
+            var rootIndex = File.ReadAllText("C:\\CatalogCache\\TestJson\\index.json");
 
-            testHandler.Pages.TryAdd("https://api.nuget.org/v3/index.json", rootIndex);
+            testHandler.Pages.TryAdd("C:\\CatalogCache\\TestJson\\index.json", rootIndex);
             context.MessageHandler = testHandler;
 
             HttpCatalogVisitor hcv = new HttpCatalogVisitor(context);
 
             // Act
-            var packages = await hcv.GetRawPackages();
+            var packages = hcv.GetRawPackagesDisk(DateTimeOffset.MinValue, DateTimeOffset.UtcNow);
 
             // Assert
-            Assert.Equal(1, packages.Count);
+            Assert.Equal(16, packages.Count);
         }
 
         [Fact]
-        public async Task GetPackagesTest()
+        public void GetPackagesTest()
         {
             // Arrange
             CatalogVisitorContext context = new CatalogVisitorContext();
             context.NoCache = true;
-            context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
+            context.FeedIndexJsonUrl = "C:\\CatalogCache\\TestJson\\index.json";
 
             var testHandler = new TestMessageHandler();
 
-            var rootIndex = GetResource("NuGet.CatalogVisitor.Tests.content.rootIndex.json");
+            //var rootIndex = GetResource("NuGet.CatalogVisitor.Tests.content.rootIndex.json");
+            var rootIndex = File.ReadAllText("C:\\CatalogCache\\TestJson\\index.json");
 
-            testHandler.Pages.TryAdd("https://api.nuget.org/v3/index.json", rootIndex);
+            testHandler.Pages.TryAdd("C:\\CatalogCache\\TestJson\\index.json", rootIndex);
             context.MessageHandler = testHandler;
 
             HttpCatalogVisitor hcv = new HttpCatalogVisitor(context);
 
             // Act
-            var packages = await hcv.GetPackages();
+            var packages = hcv.GetPackagesDisk(DateTimeOffset.MinValue, DateTimeOffset.UtcNow);
 
             // Assert
-            Assert.Equal(1, packages.Count);
+            Assert.Equal(16, packages.Count);
         }
 
         [Fact]
-        public async Task GetPackagesCursorTest()
+        public void GetPackagesCursorTest()
         {
             // Arrange
             var tempDir = Path.Combine(Environment.GetEnvironmentVariable("temp"), Guid.NewGuid().ToString());
@@ -65,26 +91,27 @@ namespace NuGet.CatalogVisitor.Tests
 
             CatalogVisitorContext context = new CatalogVisitorContext();
             context.NoCache = true;
-            context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
+            context.FeedIndexJsonUrl = "C:\\CatalogCache\\TestJson\\index.json";
             context.CatalogCacheFolder = tempDir;
 
             var testHandler = new TestMessageHandler();
 
-            var rootIndex = GetResource("NuGet.CatalogVisitor.Tests.content.rootIndex.json");
+            //var rootIndex = GetResource("NuGet.CatalogVisitor.Tests.content.rootIndex.json");
+            var rootIndex = File.ReadAllText("C:\\CatalogCache\\TestJson\\index.json");
 
-            testHandler.Pages.TryAdd("https://api.nuget.org/v3/index.json", rootIndex);
+            testHandler.Pages.TryAdd("C:\\CatalogCache\\TestJson\\index.json", rootIndex);
             context.MessageHandler = testHandler;
 
             HttpCatalogVisitor hcv = new HttpCatalogVisitor(context);
 
             MemoryCursor cursor = new MemoryCursor();
-            cursor.Date = new DateTimeOffset(2015, 2, 1, 7, 0, 0, new TimeSpan(-8, 0, 0)); // from that date to now
+            cursor.Date = new DateTimeOffset(2011, 3, 24, 7, 0, 0, new TimeSpan(-8, 0, 0)); // from that date to now
 
             // Act
-            var packages = await hcv.GetPackages(cursor);
+            var packages = hcv.GetPackagesDisk(cursor);
 
             // Assert
-            Assert.Equal(1, packages.Count);
+            Assert.Equal(16, packages.Count);
         }
 
         [Fact]
@@ -93,13 +120,14 @@ namespace NuGet.CatalogVisitor.Tests
             // Arrange
             CatalogVisitorContext context = new CatalogVisitorContext();
             context.NoCache = true;
-            context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
+            context.FeedIndexJsonUrl = "C:\\CatalogCache\\TestJson\\index.json";
 
             var testHandler = new TestMessageHandler();
 
-            var rootIndex = GetResource("NuGet.CatalogVisitor.Tests.content.rootIndex.json");
+            //var rootIndex = GetResource("NuGet.CatalogVisitor.Tests.content.rootIndex.json");
+            var rootIndex = File.ReadAllText("C:\\CatalogCache\\TestJson\\index.json");
 
-            testHandler.Pages.TryAdd("https://api.nuget.org/v3/index.json", rootIndex);
+            testHandler.Pages.TryAdd("C:\\CatalogCache\\TestJson\\index.json", rootIndex);
             context.MessageHandler = testHandler;
 
             HttpCatalogVisitor hcv = new HttpCatalogVisitor(context);
@@ -111,7 +139,8 @@ namespace NuGet.CatalogVisitor.Tests
             var packages = await hcv.GetPackages(start, end);
 
             // Assert
-            Assert.Equal(1, packages.Count);
+            Console.WriteLine(packages.Count);
+            Assert.Equal(460, packages.Count);
         }
 
         [Fact]
