@@ -16,7 +16,11 @@ namespace TestConsole
             HttpCatalogVisitor visitor = new HttpCatalogVisitor(context);
             HttpPackageDownloader HPD = new HttpPackageDownloader();
 
-            HPD.DownloadPackage("Passive", new NuGetVersion("0.2.0"), "C:\\CatalogCache\\CurrentHPD.txt");
+            //HPD.DownloadPackage("Passive", new NuGetVersion("0.2.0"), "C:\\CatalogCache\\CurrentHPD.txt");
+
+            /* Doesn't make main async. */
+            //var result = HPD.DownloadPackagesDateRange(new DateTimeOffset(2011, 01, 01, 01, 01, 01, new TimeSpan(0)), new DateTimeOffset(2013, 01, 01, 01, 01, 01, new TimeSpan(0))).Result;
+            var result = HPD.DownloadPackagesDateRange(DateTimeOffset.MinValue, DateTimeOffset.UtcNow).Result;
 
             /* Gets all packages
             IReadOnlyList<PackageMetadata> packages = visitor.GetPackages().Result;
@@ -36,7 +40,7 @@ namespace TestConsole
                 Console.WriteLine("Package - ID: {0}, Version: {1}", package.Id, package.Version);
             }
             */
-            
+
 
 
 
