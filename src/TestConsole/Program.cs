@@ -1,10 +1,8 @@
 ﻿using NuGet.CatalogVisitor;
-using NuGet.Versioning;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using NuGet.Protocol.Core.v3;
+using NuGet.Protocol.Core.Types;
+using NuGet.Common;
 
 namespace TestConsole
 {
@@ -19,8 +17,9 @@ namespace TestConsole
             //HPD.DownloadPackage("Passive", new NuGetVersion("0.2.0"), "C:\\CatalogCache\\CurrentHPD.nupkg");
 
             /* Doesn't make main async. */
-            var result = HPD.DownloadPackagesDateRange(new DateTimeOffset(2015, 2, 1, 14, 0, 0, new TimeSpan(0)), new DateTimeOffset(2015, 2, 1, 15, 1, 5, new TimeSpan(0))).Result;
+            var result = HPD.DownloadPackagesDateRange(new DateTimeOffset(2015, 2, 1, 14, 0, 0, new TimeSpan(0)), new DateTimeOffset(2015, 2, 1, 15, 1, 5, new TimeSpan(0)), @"c:\catalogcache\downloads").Result;
             //var result = HPD.DownloadPackagesDateRange(DateTimeOffset.MinValue, DateTimeOffset.UtcNow).Result;
+            
 
             /* Gets all packages
             IReadOnlyList<PackageMetadata> packages = visitor.GetPackages().Result;

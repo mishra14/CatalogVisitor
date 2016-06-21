@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NuGet.Packaging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -194,9 +195,9 @@ namespace NuGet.CatalogVisitor.Tests
 
             // https://api.nuget.org/v3-flatcontainer/adam.jsgenerator/1.1.0/adam.jsgenerator.1.1.0.nupkg
 
-            var myPackage = new ZipPackage("C:\\CatalogCache\\DownloadPackages\\testDownloadPackage.nupkg");
-            var id = myPackage.Id;
-            var version = myPackage.Version;
+            var myPackage = new PackageArchiveReader("C:\\CatalogCache\\DownloadPackages\\testDownloadPackage.nupkg");
+            var id = myPackage.GetIdentity().Id;
+            var version = myPackage.GetIdentity().Version;
             Assert.Equal(id, "Passive");
             Assert.Equal(version.ToNormalizedString(), "0.2.0");
         }
@@ -204,17 +205,20 @@ namespace NuGet.CatalogVisitor.Tests
         [Fact]
         public void DownloadPackagesDateRangeTest()
         {
-            HttpPackageDownloader hpd = new HttpPackageDownloader();
+            using (var workingDirectory = TestFileSystemUtility.CreateRandomTestFolder())
+            {
+                HttpPackageDownloader hpd = new HttpPackageDownloader();
 
-            DownloadPackagesDateRangeTestHelper(new DateTimeOffset(2015, 2, 1, 6, 22, 45, new TimeSpan(0)), new DateTimeOffset(2015, 2, 1, 6, 22, 46, new TimeSpan(0)));
+                DownloadPackagesDateRangeTestHelper(new DateTimeOffset(2015, 2, 1, 6, 22, 45, new TimeSpan(0)), new DateTimeOffset(2015, 2, 1, 6, 22, 46, new TimeSpan(0)), workingDirectory);
 
-            string tempDirectory = "C:\\CatalogCache\\DownloadPackages\\" + "HelloWorld.Toolkit".Replace(".", "-") + "1.0.0".Replace(".", "-") + ".nupkg";
+                string tempDirectory = Path.Combine(workingDirectory, "HelloWorld.Toolkit".Replace(".", "-") + "1.0.0".Replace(".", "-") + ".nupkg");
 
-            var myPackage = new ZipPackage(tempDirectory);
-            var id = myPackage.Id;
-            var version = myPackage.Version;
-            Assert.Equal(id, "HelloWorld.Toolkit");
-            Assert.Equal(version.ToNormalizedString(), "1.0.0");
+                var myPackage = new PackageArchiveReader(tempDirectory);
+                var id = myPackage.GetIdentity().Id;
+                var version = myPackage.GetIdentity().Version;
+                Assert.Equal(id, "HelloWorld.Toolkit");
+                Assert.Equal(version.ToNormalizedString(), "1.0.0");
+            }
         }
 
         /// <summary>
@@ -223,17 +227,16 @@ namespace NuGet.CatalogVisitor.Tests
         /// <param name="start"></param>
         /// <param name="end"></param>
         /// <returns></returns>
-        private void DownloadPackagesDateRangeTestHelper(DateTimeOffset start, DateTimeOffset end)
+        private void DownloadPackagesDateRangeTestHelper(DateTimeOffset start, DateTimeOffset end, string downloadDirectory)
         {
             HttpPackageDownloader hpd = new HttpPackageDownloader();
 
             var packages = GetPackagesDatesHelper();
 
-            string baseDirectory = "C:\\CatalogCache\\DownloadPackages\\";
-
             foreach (var package in packages)
             {
-                string tempDirectory = baseDirectory + package.Id.Replace(".", "-") + package.Version.ToString().Replace(".", "-") + ".nupkg";
+                var nupkgName = package.Id.Replace(".", "-") + package.Version.ToString().Replace(".", "-") + ".nupkg";
+                string tempDirectory = Path.Combine(downloadDirectory, nupkgName);
                 hpd.DownloadPackage(package.Id, package.Version, tempDirectory);
             }
         }

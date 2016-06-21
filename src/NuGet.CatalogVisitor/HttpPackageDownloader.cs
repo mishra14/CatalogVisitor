@@ -37,7 +37,7 @@ namespace NuGet.CatalogVisitor
         /// <param name="start"></param>
         /// <param name="end"></param>
         /// <returns></returns>
-        public async Task<HttpCatalogVisitor> DownloadPackagesDateRange(DateTimeOffset start, DateTimeOffset end)
+        public async Task<HttpCatalogVisitor> DownloadPackagesDateRange(DateTimeOffset start, DateTimeOffset end, string downloadDirectory)
         {
             CatalogVisitorContext context = new CatalogVisitorContext();
             context.NoCache = true;
