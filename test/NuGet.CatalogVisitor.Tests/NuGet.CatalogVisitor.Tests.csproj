@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\packages\xunit.runner.visualstudio.2.1.0\build\net20\xunit.runner.visualstudio.props" Condition="Exists('..\..\packages\xunit.runner.visualstudio.2.1.0\build\net20\xunit.runner.visualstudio.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -12,6 +13,8 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -31,8 +34,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Web.XmlTransform, Version=2.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NuGet.Core, Version=2.11.1.812, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Core.2.11.1\lib\net40-Client\NuGet.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=3.4.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -79,9 +90,45 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="content\rootIndex.json" />
+    <EmbeddedResource Include="content\catalog0.json" />
+    <EmbeddedResource Include="content\catalog0page0.json" />
+    <EmbeddedResource Include="content\catalog0page1.json" />
+    <EmbeddedResource Include="content\catalog0page2.json" />
+    <EmbeddedResource Include="content\catalog0page3.json" />
+    <EmbeddedResource Include="content\catalog1.json" />
+    <EmbeddedResource Include="content\catalog1page0.json" />
+    <EmbeddedResource Include="content\catalog1page1.json" />
+    <EmbeddedResource Include="content\catalog1page2.json" />
+    <EmbeddedResource Include="content\catalog1page3.json" />
+    <EmbeddedResource Include="content\catalog2.json" />
+    <EmbeddedResource Include="content\catalog2page0.json" />
+    <EmbeddedResource Include="content\catalog2page1.json" />
+    <EmbeddedResource Include="content\catalog2page2.json" />
+    <EmbeddedResource Include="content\catalog2page3.json" />
+    <EmbeddedResource Include="content\catalog3.json" />
+    <EmbeddedResource Include="content\catalog3page0.json" />
+    <EmbeddedResource Include="content\catalog3page1.json" />
+    <EmbeddedResource Include="content\catalog3page2.json" />
+    <EmbeddedResource Include="content\catalog3page3.json" />
+    <EmbeddedResource Include="content\CatalogCache-TestJson-catalog0.json" />
+    <EmbeddedResource Include="content\CatalogCache-TestJson-catalog1.json" />
+    <EmbeddedResource Include="content\CatalogCache-TestJson-catalog2.json" />
+    <EmbeddedResource Include="content\CatalogCache-TestJson-catalog3.json" />
+    <EmbeddedResource Include="content\CatalogCache-TestJson-index.json" />
+    <EmbeddedResource Include="content\catalog_index.json" />
+    <EmbeddedResource Include="content\index.json" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\packages\xunit.runner.visualstudio.2.1.0\build\net20\xunit.runner.visualstudio.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\xunit.runner.visualstudio.2.1.0\build\net20\xunit.runner.visualstudio.props'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

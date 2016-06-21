@@ -1,0 +1,29 @@
+{
+"version": "3.0.0-beta.1",
+"resources": [
+{
+"@id": "C:\\CatalogCache\\TestJson\\fake.json",
+"@type": "SearchQueryService",
+"comment": "Query endpoint of NuGet Search service (primary)"
+},
+{
+"@id": "C:\\CatalogCache\\TestJson\\fake.json",
+"@type": "SearchQueryService",
+"comment": "Query endpoint of NuGet Search service (secondary)"
+},
+{
+"@id": "C:\\CatalogCache\\TestJson\\fake.json",
+"@type": "SearchAutocompleteService",
+"comment": "Autocomplete endpoint of NuGet Search service (primary)"
+},
+{
+"@id": "https://api.nuget.org/v3/catalog0/index.json",
+"@type": "SearchAutocompleteService",
+"comment": "Autocomplete endpoint of NuGet Search service (secondary)"
+}
+],
+"@context": {
+"@vocab": "http://schema.nuget.org/services#",
+"comment": "http://www.w3.org/2000/01/rdf-schema#comment"
+}
+}

@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.IO;
-using System.Collections.ObjectModel;
 
 namespace NuGet.CatalogVisitor
 {
@@ -14,7 +12,7 @@ namespace NuGet.CatalogVisitor
     {
         private static CatalogVisitorContext _context = new CatalogVisitorContext();
         private static FileCursor _cursor = new FileCursor();
-        private static HttpClient _client = new HttpClient();
+        private static HttpClient _client;
 
         private static readonly List<PackageMetadata> _list = new List<PackageMetadata>();
         private static List<PackageMetadata> _items = new List<PackageMetadata>();

@@ -18,17 +18,16 @@ namespace NuGet.CatalogVisitor
         /// <param name="version"></param>
         /// <param name="downloadDirectory"></param>
         /// <returns></returns>
-        public Task DownloadPackage(string id, NuGetVersion version, string downloadDirectory)
+        public void DownloadPackage(string id, NuGetVersion version, string downloadDirectory)
         {
             // https://api.nuget.org/v3-flatcontainer/{id-lower}/{version-lower}/{id-lower}.{version-lower}.nupkg
+
 
             var myUrl = "https://api.nuget.org/v3-flatcontainer/" + id.ToLower() + "/" + version.ToString().ToLower() + "/" + id.ToLower() + "." + version.ToString().ToLower() + ".nupkg";
             // https://api.nuget.org/v3-flatcontainer/adam.jsgenerator/1.1.0/adam.jsgenerator.1.1.0.nupkg
 
             System.Net.WebClient client = new System.Net.WebClient();
             client.DownloadFile(myUrl, downloadDirectory);
-            
-            return Task.Delay(0);
         }
         
         /// <summary>
@@ -53,7 +52,7 @@ namespace NuGet.CatalogVisitor
             foreach (var package in packages)
             {
                 string tempDirectory = baseDirectory + package.Id.Replace(".", "-") + package.Version.ToString().Replace(".", "-") + ".nupkg";
-                await DownloadPackage(package.Id, package.Version, tempDirectory);
+                DownloadPackage(package.Id, package.Version, tempDirectory);
             }
             return hcv;
         }

@@ -1,0 +1,67 @@
+{
+"@id": "C:\\CatalogCache\\TestJson\\catalog0.json",
+"@type": [
+"CatalogRoot",
+"AppendOnlyCatalog",
+"Permalink"
+],
+"commitId": "175502d8-f039-4b15-a8b4-8276ea1a41b9",
+"commitTimeStamp": "2016-06-13T16:29:32.2571585Z",
+"count": 1678,
+"nuget:lastCreated": "2016-06-13T16:29:12.91Z",
+"nuget:lastDeleted": "2016-06-10T16:44:51.9447193Z",
+"nuget:lastEdited": "2016-06-13T16:07:40.127Z",
+"items": [
+{
+"@id": "C:\\CatalogCache\\TestJson\\catalog0.json",
+"@type": "CatalogPage",
+"commitId": "00000000-0000-0000-0000-000000000000",
+"commitTimeStamp": "2015-02-01T06:30:11.7477681Z",
+"count": 540
+},
+{
+"@id": "C:\\CatalogCache\\TestJson\\catalog1.json",
+"@type": "CatalogPage",
+"commitId": "8bcd3cbf-74f0-47a2-a7ae-b7ecc50005d3",
+"commitTimeStamp": "2015-02-01T06:39:53.9553899Z",
+"count": 540
+},
+{
+"@id": "C:\\CatalogCache\\TestJson\\catalog2.json",
+"@type": "CatalogPage",
+"commitId": "ddbb307f-3af3-4276-aac8-04577b703a09",
+"commitTimeStamp": "2015-02-01T06:49:12.657797Z",
+"count": 540
+},
+{
+"@id": "C:\\CatalogCache\\TestJson\\catalog3.json",
+"@type": "CatalogPage",
+"commitId": "3a94eead-7619-46b6-a502-13d7a21d9a97",
+"commitTimeStamp": "2015-02-01T06:58:47.9532886Z",
+"count": 540
+}
+],
+"@context": {
+"@vocab": "http://schema.nuget.org/catalog#",
+"nuget": "http://schema.nuget.org/schema#",
+"items": {
+"@id": "item",
+"@container": "@set"
+},
+"parent": {
+"@type": "@id"
+},
+"commitTimeStamp": {
+"@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+},
+"nuget:lastCreated": {
+"@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+},
+"nuget:lastEdited": {
+"@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+},
+"nuget:lastDeleted": {
+"@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+}
+}
+}
