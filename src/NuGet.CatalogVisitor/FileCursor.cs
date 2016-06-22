@@ -13,6 +13,13 @@ namespace NuGet.CatalogVisitor
         {
 
         }
+
+        public FileCursor(string cursorPath, DateTimeOffset date)
+        {
+            CursorPath = cursorPath;
+            Date = date;
+        }
+
         public string CursorPath { get; set; }
         public DateTimeOffset Date { get; set; }
         public void Save()
