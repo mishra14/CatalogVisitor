@@ -1,4 +1,5 @@
 ﻿using Xunit;
+using FeedMirror;
 
 namespace NuGet.CatalogVisitor.Tests
 {
@@ -53,12 +54,13 @@ namespace NuGet.CatalogVisitor.Tests
             // Arrange
             SetUpHttp();
 
-            CatalogVisitorContext myContext = new CatalogVisitorContext();
-            myContext.CatalogCacheFolder = "C:\\CatalogCache\\MirrorPackages\\";
-            myContext.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
+            //CatalogVisitorContext myContext = new CatalogVisitorContext();
+            //myContext.CatalogCacheFolder = "C:\\CatalogCache\\MirrorPackages\\";
+            _context.CatalogCacheFolder = "C:\\CatalogCache\\MirrorPackages\\";
+            //myContext.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
             string mySource = "https://www.myget.org/F/kaswan/api/v3/index.json";
 
-            PackageMirror myPM = new PackageMirror(myContext, mySource);
+            PackageMirror myPM = new PackageMirror(_context, mySource);
 
             // Act
             var pushed = myPM.MirrorPackages().Result;

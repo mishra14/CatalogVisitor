@@ -1,8 +1,5 @@
 ﻿using NuGet.CatalogVisitor;
 using System;
-using NuGet.Protocol.Core.v3;
-using NuGet.Protocol.Core.Types;
-using NuGet.Common;
 
 namespace TestConsole
 {

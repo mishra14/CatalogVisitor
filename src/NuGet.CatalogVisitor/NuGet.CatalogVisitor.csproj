@@ -116,7 +116,6 @@
     <Compile Include="IPackageDownloader.cs" />
     <Compile Include="PackageData.cs" />
     <Compile Include="PackageMetadata.cs" />
-    <Compile Include="PackageMirror.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

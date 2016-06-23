@@ -7,6 +7,16 @@ namespace NuGet.CatalogVisitor
 {
     public class CatalogVisitorContext
     {
+        public CatalogVisitorContext()
+        {
+
+        }
+
+        public CatalogVisitorContext(string feed)
+        {
+            FeedIndexJsonUrl = feed;
+        }
+
         public string FeedIndexJsonUrl { get; set; }
 
         public HttpMessageHandler MessageHandler { get; set; }

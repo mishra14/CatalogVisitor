@@ -99,6 +99,10 @@
     <Compile Include="TestMessageHandler.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\FeedMirror\FeedMirror.csproj">
+      <Project>{1851E6A8-CE32-41AF-88E8-591CEDD2D908}</Project>
+      <Name>FeedMirror</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\NuGet.CatalogVisitor\NuGet.CatalogVisitor.csproj">
       <Project>{570e0f42-e519-4a97-b609-afb47087e0ea}</Project>
       <Name>NuGet.CatalogVisitor</Name>

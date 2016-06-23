@@ -11,7 +11,7 @@ namespace NuGet.CatalogVisitor
     public class HttpCatalogVisitor : ICatalogVisitor
     {
         private static CatalogVisitorContext _context = new CatalogVisitorContext();
-        private static FileCursor _cursor = new FileCursor();
+        private static FileCursor _cursor = new FileCursor("C:\\CatalogCache\\httpCatalogVisitor.txt", DateTimeOffset.MinValue);
         private static HttpClient _client;
 
         private static readonly List<PackageMetadata> _list = new List<PackageMetadata>();
@@ -32,8 +32,7 @@ namespace NuGet.CatalogVisitor
 
             //Console.WriteLine("Please enter the file path for your cursor folder: ");
             //var cursor = Console.ReadLine();
-            var cursor = "C:\\CatalogCache\\myCursor.txt";
-            _cursor.CursorPath = cursor;
+            //_cursor.CursorPath = cursor;
 
             //Console.WriteLine("Please enter the file path for your cache folder: ");
             //C:\\CatalogCache\
