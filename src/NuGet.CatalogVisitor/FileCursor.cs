@@ -26,7 +26,7 @@ namespace NuGet.CatalogVisitor
         {
             File.WriteAllText(CursorPath, Date.ToString("o"));
         }
-        public FileCursor Load(string path)
+        public static FileCursor Load(string path)
         {
             DateTimeOffset fileDate = DateTimeOffset.MinValue;
 

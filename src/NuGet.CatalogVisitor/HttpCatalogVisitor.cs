@@ -10,9 +10,9 @@ namespace NuGet.CatalogVisitor
 {
     public class HttpCatalogVisitor : ICatalogVisitor
     {
-        private static CatalogVisitorContext _context = new CatalogVisitorContext();
-        private static FileCursor _cursor = new FileCursor("C:\\CatalogCache\\httpCatalogVisitor.txt", DateTimeOffset.MinValue);
-        private static HttpClient _client;
+        private CatalogVisitorContext _context = new CatalogVisitorContext();
+        private FileCursor _cursor = new FileCursor("C:\\CatalogCache\\httpCatalogVisitor.txt", DateTimeOffset.MinValue);
+        private HttpClient _client;
 
         private static readonly List<PackageMetadata> _list = new List<PackageMetadata>();
         private static List<PackageMetadata> _items = new List<PackageMetadata>();
@@ -39,9 +39,10 @@ namespace NuGet.CatalogVisitor
             //var contextPath = Console.ReadLine();
             var contextPath = "C:\\CatalogCache\\";
             _context.CatalogCacheFolder = contextPath;
+            _context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
         }
 
-       
+
 
         /// <summary>
         /// Gets all packages latest edit of each version.
@@ -87,33 +88,32 @@ namespace NuGet.CatalogVisitor
             {
                 /* Create new HttpCatalogVisitor object to return. */
                 List<PackageMetadata> newList = new List<PackageMetadata>();
-                string baseUrl = "https://api.nuget.org/v3/index.json";
 
                 /* Get cursor date, get json string from given uri (main index.json). */
                 /* Cursor support (d). */
-                _cursor.Load(_cursor.CursorPath);
-                var fileDate = _cursor.Date;
-                string json = GetCatalogIndexUri(new Uri(baseUrl)).Result;
+                //FileCursor.Load(_cursor.CursorPath);
+                //var fileDate = _cursor.Date;
+                string json = await GetCatalogIndexUri(new Uri(_context.FeedIndexJsonUrl));
 
                 /* Parse json string and find second level - catalog - from index page. */
-                JObject root = GetJson(baseUrl);
+                JObject root = await GetJson(_context.FeedIndexJsonUrl);
                 JArray resources = (JArray)root["resources"];
                 string catalogUri = (string)resources.Last["@id"];
 
                 /* Get json from catalog uri found from previous index.json, write to file. */
-                root = GetJson(catalogUri);
-                Uri baseUri = new Uri(baseUrl);
+                root = await GetJson(catalogUri);
+                Uri baseUri = new Uri(_context.FeedIndexJsonUrl);
                 var fileName = baseUri.LocalPath.Replace("/", "-");
-                var path = _context.CatalogCacheFolder + fileName;
+                //var path = _context.CatalogCacheFolder + fileName;
                 /* Caching to disk (c). */
-                WriteToFileFromFolder(path, json);
+                //WriteToFileFromFolder(path, json);
 
                 /* Parse json and get list of package urls so we can open 3rd level. */
                 JArray items = (JArray)root["items"];
                 var pageCommitTime = DateTimeOffset.MinValue;
 
                 /* items.Count when you have time */
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < items.Count; i++)
                 {
                     /* Go through each item in 2nd level and parse out commit time and url, then write to file. */
                     pageCommitTime = items[i]["commitTimeStamp"].ToObject<DateTimeOffset>();
@@ -123,18 +123,36 @@ namespace NuGet.CatalogVisitor
                     JObject root2 = null;
 
                     /* Do nothing if it is older than the cursor and exists. */
-                    if (fileDate >= pageCommitTime && File.Exists(cachePath))
+                    if (start < pageCommitTime && end >= pageCommitTime)
                     {
-                        Console.WriteLine($"[CACHE] {newUri.AbsoluteUri}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[GET] {newUri.AbsoluteUri}");
+                        bool useCache = false;
 
-                        /* Get json string in 3rd level from url in 2nd level, then write that to its own file. */
-                        var json2 = await GetCatalogIndexUri(new Uri((string)items[i]["@id"]));
-                        /* Caching to disk (c). */
-                        WriteToFileFromFolder(cachePath, json2);
+                        // Check if we already have this file
+                        if (File.Exists(cachePath))
+                        {
+                            var timeStamp = File.GetLastWriteTimeUtc(cachePath);
+
+                            // If the timestamp hasn't changed we can use the same file
+                            useCache = timeStamp >= pageCommitTime;
+                        }
+
+                        string json2 = null;
+
+                        if (useCache)
+                        {
+                            Console.WriteLine($"[CACHE] {newUri.AbsoluteUri}");
+
+                            json2 = File.ReadAllText(cachePath);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[ADDING] {newUri.AbsoluteUri}");
+
+                            /* Get json string in 3rd level from url in 2nd level, then write that to its own file. */
+                            json2 = await GetCatalogIndexUri(new Uri((string)items[i]["@id"]));
+                            /* Caching to disk (c). */
+                            WriteCacheFile(cachePath, json2, pageCommitTime);
+                        }
 
                         /* If not XML... */
                         if (json2[0] != '<')
@@ -174,10 +192,11 @@ namespace NuGet.CatalogVisitor
                             }
                         }
                     }
+                    /* Save cursor file to the time of now, return the HCV object. */
+                    /* Cursor support (d). */
+                    //_cursor.Save();                   
                 }
-                /* Save cursor file to the time of now, return the HCV object. */
-                /* Cursor support (d). */
-                _cursor.Save();
+
                 return newList;
             }
             catch (Exception ex)
@@ -204,7 +223,7 @@ namespace NuGet.CatalogVisitor
 
                 /* Get cursor date, get json string from given uri (main index.json). */
                 /* Cursor support (d). */
-                _cursor.Load(_cursor.CursorPath);
+                FileCursor.Load(_cursor.CursorPath);
                 var fileDate = _cursor.Date;
                 string json = File.ReadAllText(baseUrl);
 
@@ -364,17 +383,17 @@ namespace NuGet.CatalogVisitor
 
                 /* Get cursor date, get json string from given uri (main index.json). */
                 /* Cursor support (d). */
-                _cursor.Load(_cursor.CursorPath);
+                FileCursor.Load(_cursor.CursorPath);
                 var fileDate = _cursor.Date;
-                string json = GetCatalogIndexUri(new Uri(baseUrl)).Result;
+                string json = await GetCatalogIndexUri(new Uri(baseUrl));
 
                 /* Parse json string and find second level - catalog - from index page. */
-                JObject root = GetJson(baseUrl);
+                JObject root = await GetJson(baseUrl);
                 JArray resources = (JArray)root["resources"];
                 string catalogUri = (string)resources.Last["@id"];
 
                 /* Get json from catalog uri found from previous index.json, write to file. */
-                root = GetJson(catalogUri);
+                root = await GetJson(catalogUri);
                 Uri baseUri = new Uri(baseUrl);
                 var fileName = baseUri.LocalPath.Replace("/", "-");
                 var path = _context.CatalogCacheFolder + fileName;
@@ -459,7 +478,7 @@ namespace NuGet.CatalogVisitor
 
                 /* Get cursor date, get json string from given uri (main index.json). */
                 /* Cursor support (d). */
-                _cursor.Load(_cursor.CursorPath);
+                FileCursor.Load(_cursor.CursorPath);
                 var fileDate = _cursor.Date;
                 string json = File.ReadAllText(baseUrl);
 
@@ -544,11 +563,9 @@ namespace NuGet.CatalogVisitor
         /// </summary>
         /// <param name="uri"></param>
         /// <returns></returns>
-        public static async Task<string> GetCatalogIndexUri(Uri uri)
+        public async Task<string> GetCatalogIndexUri(Uri uri)
         {
-            using (HttpClient hc = new HttpClient())
-            using (HttpResponseMessage response = await hc.GetAsync(uri))
-            using (HttpContent content = response.Content)
+            using (HttpResponseMessage response = await _client.GetAsync(uri))
             {
                 if (response.Equals(null))
                 {
@@ -557,7 +574,7 @@ namespace NuGet.CatalogVisitor
                 }
                 else
                 {
-                    return await content.ReadAsStringAsync();
+                    return await response.Content.ReadAsStringAsync();
                 }
             }
         }
@@ -567,14 +584,20 @@ namespace NuGet.CatalogVisitor
             File.WriteAllText(file, content);
         }
 
+        public static void WriteCacheFile(string file, string content, DateTimeOffset writeTime)
+        {
+            File.WriteAllText(file, content);
+            File.SetLastWriteTimeUtc(file, writeTime.UtcDateTime);
+        }
+
         /// <summary>
         /// Reads json from a url, returns it as a JObject.
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        private static JObject GetJson(string url)
+        private async Task<JObject> GetJson(string url)
         {
-            var json = GetCatalogIndexUri(new Uri(url)).Result;
+            var json = await GetCatalogIndexUri(new Uri(url));
             JObject root = JObject.Parse(json);
             return root;
         }

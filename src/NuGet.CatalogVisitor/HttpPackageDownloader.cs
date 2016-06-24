@@ -57,7 +57,7 @@ namespace NuGet.CatalogVisitor
             CatalogVisitorContext context = new CatalogVisitorContext();
             context.NoCache = true;
             context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
-            _cursor.Load(_cursor.CursorPath);
+            FileCursor.Load(_cursor.CursorPath);
             var fileDate = _cursor.Date;
 
             HttpCatalogVisitor hcv = new HttpCatalogVisitor(context);

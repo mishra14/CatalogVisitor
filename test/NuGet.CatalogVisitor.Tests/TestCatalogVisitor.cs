@@ -47,7 +47,7 @@ internal class TestCatalogVisitor
         Assert.Equal(cursor.CursorPath, "C:\\CatalogCache\\testFileCursor.txt");
         Assert.Equal(cursor.Date, now);
 
-        FileCursor newCursor = cursor.Load(cursor.CursorPath);
+        FileCursor newCursor = FileCursor.Load(cursor.CursorPath);
         Assert.Equal(newCursor.CursorPath, cursor.CursorPath);
         var cursorText = File.ReadAllText(newCursor.CursorPath);
         var fileDate = DateTimeOffset.Parse(cursorText);

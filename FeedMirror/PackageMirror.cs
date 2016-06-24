@@ -22,10 +22,8 @@ namespace FeedMirror
     public class PackageMirror
     {
         /* Default feed. */
-        private static CatalogVisitorContext _context = new CatalogVisitorContext("https://api.nuget.org/v3/index.json");
-        /* Yesterday. */
-        private static FileCursor _cursor = new FileCursor("C:\\CatalogCache\\packageMirrorCursor.txt", new DateTimeOffset(2016, 6, 22, 1, 1, 1, new TimeSpan(0)));
-        SourceRepository _outputSource = Repository.Factory.GetCoreV3("https://www.myget.org/F/kaswan/api/v3/index.json");
+        private CatalogVisitorContext _context;
+        private SourceRepository _outputSource;
 
         /// <summary>
         /// User passes in their feed with context.Feed.
@@ -38,15 +36,14 @@ namespace FeedMirror
             _outputSource = Repository.Factory.GetCoreV3(outputSource);
         }
 
-        public async Task<int> MirrorPackages()
+        public async Task<int> MirrorPackages(DateTimeOffset start, DateTimeOffset end)
         {
-            // Read cursor
-            _cursor = _cursor.Load(_cursor.CursorPath);
-            var fileDate = _cursor.Date;
-
             // Get packages
             HttpCatalogVisitor hcv = new HttpCatalogVisitor(_context);
-            var packages = hcv.GetPackages(_cursor).Result;
+            var packages = await hcv.GetPackages(start, end);
+
+            Console.WriteLine($"Found {packages.Count} packages.");
+            Console.WriteLine($"Pushing");
 
             // Push packages
             var pushResource = _outputSource.GetResource<PackageUpdateResource>();
@@ -57,7 +54,7 @@ namespace FeedMirror
                 var packagePath = _context.CatalogCacheFolder + "Mirror-" + package.Id + "-" + package.Version.ToNormalizedString() + ".nupkg";
                 Uri newUri = new Uri(packagePath);
                 /* Do nothing if it is older than the cursor and exists. */
-                if (fileDate >= package.CommitTimeStamp && File.Exists(packagePath))
+                if (start > package.CommitTimeStamp && end <= package.CommitTimeStamp && File.Exists(packagePath))
                 {
                     Console.WriteLine($"[CACHE] {newUri.AbsoluteUri}");
                 }
@@ -75,9 +72,12 @@ namespace FeedMirror
                             await stream.CopyToAsync(outputStream);
                         }
 
-                        /* How does this, specifically packagePath, work? */
-                        await pushResource.Push(packagePath, "", 100, false, GetAPIKey, NullLogger.Instance);
+                        /* 95.9% of my feed is used, should I get a new/multiple ones? */
+                        await pushResource.Push(packagePath, "", 500, false, GetAPIKey, NullLogger.Instance);
                         pushed++;
+
+                        // Clean up
+                        File.Delete(packagePath);
                     }
                     catch (Exception ex)
                     {
@@ -85,12 +85,11 @@ namespace FeedMirror
                         //throw new InvalidOperationException($"Failed {myUrl} exception: {ex.ToString()}");
                         /* don't download package */
                         Console.WriteLine($"Not downloading {myUrl} because it does not exist: \r\n{ex}.");
+                        throw;
                     }
                 }
             }
 
-            // Save cursor
-            _cursor.Save();
             return pushed;
         }
 
