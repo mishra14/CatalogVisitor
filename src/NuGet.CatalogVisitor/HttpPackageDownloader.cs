@@ -26,22 +26,32 @@ namespace NuGet.CatalogVisitor
             // https://api.nuget.org/v3-flatcontainer/adam.jsgenerator/1.1.0/adam.jsgenerator.1.1.0.nupkg
 
             HttpClient client = new HttpClient();
-            //client.DownloadFile(myUrl, downloadDirectory);
 
             try
             {
                 using (var stream = await client.GetStreamAsync(myUrl))
                 using (var outputStream = File.Create(downloadDirectory))
                 {
-                    await stream.CopyToAsync(outputStream);
+                    if (stream.Length == 0)
+                    {
+                        var binWriter = new BinaryWriter(new MemoryStream());
+                        binWriter.Write("Empty nupkg.");
+                        var binReader = new BinaryReader(outputStream);
+                        byte[] result = binReader.ReadBytes((int)binWriter.BaseStream.Length);
+                        outputStream.Write(result, 1, 1);
+                    }
+                    else
+                    {
+                        await stream.CopyToAsync(outputStream);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 /* BlueprintCSS 1.0.0 url doesn't work */
-                //throw new InvalidOperationException($"Failed {myUrl} exception: {ex.ToString()}");
+                throw new InvalidOperationException($"Failed {myUrl} exception: {ex.ToString()}");
                 /* don't download package */
-                Console.WriteLine($"Not downloading {myUrl} because it does not exist: \r\n{ex}.");
+                //Console.WriteLine($"Not downloading {myUrl} because it does not exist: \r\n{ex}.");
             }
         }
 

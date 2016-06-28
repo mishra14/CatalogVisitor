@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using System.Diagnostics;
 
 namespace NuGet.CatalogVisitor
 {
@@ -121,11 +122,13 @@ namespace NuGet.CatalogVisitor
                     fileName = newUri.LocalPath.Replace("/", "-");
                     var cachePath = _context.CatalogCacheFolder + fileName;
                     JObject root2 = null;
+                    bool useCache = true;
+                    string json2 = null;
 
                     /* Do nothing if it is older than the cursor and exists. */
                     if (start < pageCommitTime && end >= pageCommitTime)
                     {
-                        bool useCache = false;
+                        useCache = false;
 
                         // Check if we already have this file
                         if (File.Exists(cachePath))
@@ -135,73 +138,68 @@ namespace NuGet.CatalogVisitor
                             // If the timestamp hasn't changed we can use the same file
                             useCache = timeStamp >= pageCommitTime;
                         }
+                    }
 
-                        string json2 = null;
+                    if (useCache)
+                    {
+                        Console.WriteLine($"[CACHE] {newUri.AbsoluteUri}");
 
-                        if (useCache)
+                        json2 = File.ReadAllText(cachePath);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[ADDING] {newUri.AbsoluteUri}");
+
+                        /* Get json string in 3rd level from url in 2nd level, then write that to its own file. */
+                        json2 = await GetCatalogIndexUri(new Uri((string)items[i]["@id"]));
+                        /* Caching to disk (c). */
+                        WriteCacheFile(cachePath, json2, pageCommitTime);
+                    }
+
+                    /* If not XML... */
+                    if (json2[0] != '<')
+                    {
+                        /* Parse out list of items to get to 4th level. */
+                        root2 = JObject.Parse(json2);
+                        JArray tempItems = (JArray)root2["items"];
+
+                        /* Add each item in 4th level to two lists as metadata w ID, version, and commitTimeStamp. */
+                        foreach (var item in tempItems)
                         {
-                            Console.WriteLine($"[CACHE] {newUri.AbsoluteUri}");
+                            var metadata = CatalogVisitorContext.GetMetadata((JObject)item);
 
-                            json2 = File.ReadAllText(cachePath);
-                        }
-                        else
-                        {
-                            Console.WriteLine($"[ADDING] {newUri.AbsoluteUri}");
-
-                            /* Get json string in 3rd level from url in 2nd level, then write that to its own file. */
-                            json2 = await GetCatalogIndexUri(new Uri((string)items[i]["@id"]));
-                            /* Caching to disk (c). */
-                            WriteCacheFile(cachePath, json2, pageCommitTime);
-                        }
-
-                        /* If not XML... */
-                        if (json2[0] != '<')
-                        {
-                            /* Parse out list of items to get to 4th level. */
-                            root2 = JObject.Parse(json2);
-                            JArray tempItems = (JArray)root2["items"];
-
-                            /* Add each item in 4th level to two lists as metadata w ID, version, and commitTimeStamp. */
-                            foreach (var item in tempItems)
+                            // Add to empty list if in between start and end dates.
+                            if (metadata.CommitTimeStamp >= start && metadata.CommitTimeStamp <= end)
                             {
-                                var metadata = CatalogVisitorContext.GetMetadata((JObject)item);
-
-                                /* If within the dates specified. */
-                                if (metadata.CommitTimeStamp >= start && metadata.CommitTimeStamp <= end)
+                                if (newList.Contains(metadata))
                                 {
-                                    // Add to empty list if in between start and end dates.
-                                    if (metadata.CommitTimeStamp >= start && metadata.CommitTimeStamp <= end)
+                                    var index = newList.IndexOf(metadata);
+                                    var containedElement = newList.ElementAt(index);
+                                    /* Add latest addition of each version. */
+                                    if (metadata.Version.Equals(containedElement.Version) && metadata.CommitTimeStamp > containedElement.CommitTimeStamp)
                                     {
-                                        if (newList.Contains(metadata))
-                                        {
-                                            var index = newList.IndexOf(metadata);
-                                            var containedElement = newList.ElementAt<PackageMetadata>(index);
-                                            /* Add latest addition of each version. */
-                                            if (metadata.Version.Equals(containedElement.Version) && metadata.CommitTimeStamp > containedElement.CommitTimeStamp)
-                                            {
-                                                newList.Remove(containedElement);
-                                                newList.Add(metadata);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            newList.Add(metadata);
-                                        }
+                                        newList.Remove(containedElement);
+                                        newList.Add(metadata);
                                     }
+                                }
+                                else
+                                {
+                                    newList.Add(metadata);
                                 }
                             }
                         }
                     }
-                    /* Save cursor file to the time of now, return the HCV object. */
-                    /* Cursor support (d). */
-                    //_cursor.Save();                   
                 }
+                /* Save cursor file to the time of now, return the HCV object. */
+                /* Cursor support (d). */
+                //_cursor.Save();                   
 
                 return newList;
             }
             catch (Exception ex)
             {
-                throw ex;
+                Console.WriteLine(ex.ToString());
+                throw;
             }
         }
 
@@ -292,7 +290,7 @@ namespace NuGet.CatalogVisitor
                                         if (newList.Contains(metadata))
                                         {
                                             var index = newList.IndexOf(metadata);
-                                            var containedElement = newList.ElementAt<PackageMetadata>(index);
+                                            var containedElement = newList.ElementAt(index);
                                             /* Add latest addition of each version. */
                                             if (metadata.Version.Equals(containedElement.Version) && metadata.CommitTimeStamp > containedElement.CommitTimeStamp)
                                             {
@@ -379,33 +377,32 @@ namespace NuGet.CatalogVisitor
             {
                 /* Create new HttpCatalogVisitor object to return. */
                 List<PackageMetadata> newList = new List<PackageMetadata>();
-                string baseUrl = "https://api.nuget.org/v3/index.json";
 
                 /* Get cursor date, get json string from given uri (main index.json). */
                 /* Cursor support (d). */
-                FileCursor.Load(_cursor.CursorPath);
-                var fileDate = _cursor.Date;
-                string json = await GetCatalogIndexUri(new Uri(baseUrl));
+                //FileCursor.Load(_cursor.CursorPath);
+                //var fileDate = _cursor.Date;
+                string json = await GetCatalogIndexUri(new Uri(_context.FeedIndexJsonUrl));
 
                 /* Parse json string and find second level - catalog - from index page. */
-                JObject root = await GetJson(baseUrl);
+                JObject root = await GetJson(_context.FeedIndexJsonUrl);
                 JArray resources = (JArray)root["resources"];
                 string catalogUri = (string)resources.Last["@id"];
 
                 /* Get json from catalog uri found from previous index.json, write to file. */
                 root = await GetJson(catalogUri);
-                Uri baseUri = new Uri(baseUrl);
+                Uri baseUri = new Uri(_context.FeedIndexJsonUrl);
                 var fileName = baseUri.LocalPath.Replace("/", "-");
-                var path = _context.CatalogCacheFolder + fileName;
+                //var path = _context.CatalogCacheFolder + fileName;
                 /* Caching to disk (c). */
-                WriteToFileFromFolder(path, json);
+                //WriteToFileFromFolder(path, json);
 
                 /* Parse json and get list of package urls so we can open 3rd level. */
                 JArray items = (JArray)root["items"];
                 var pageCommitTime = DateTimeOffset.MinValue;
 
                 /* items.Count when you have time */
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < items.Count; i++)
                 {
                     /* Go through each item in 2nd level and parse out commit time and url, then write to file. */
                     pageCommitTime = items[i]["commitTimeStamp"].ToObject<DateTimeOffset>();
@@ -415,18 +412,36 @@ namespace NuGet.CatalogVisitor
                     JObject root2 = null;
 
                     /* Do nothing if it is older than the cursor and exists. */
-                    if (fileDate >= pageCommitTime && File.Exists(cachePath))
+                    if (start < pageCommitTime && end >= pageCommitTime)
                     {
-                        Console.WriteLine($"[CACHE] {newUri.AbsoluteUri}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[GET] {newUri.AbsoluteUri}");
+                        bool useCache = false;
 
-                        /* Get json string in 3rd level from url in 2nd level, then write that to its own file. */
-                        var json2 = await GetCatalogIndexUri(new Uri((string)items[i]["@id"]));
-                        /* Caching to disk (c). */
-                        WriteToFileFromFolder(cachePath, json2);
+                        // Check if we already have this file
+                        if (File.Exists(cachePath))
+                        {
+                            var timeStamp = File.GetLastWriteTimeUtc(cachePath);
+
+                            // If the timestamp hasn't changed we can use the same file
+                            useCache = timeStamp >= pageCommitTime;
+                        }
+
+                        string json2 = null;
+
+                        if (useCache)
+                        {
+                            Console.WriteLine($"[CACHE] {newUri.AbsoluteUri}");
+
+                            json2 = File.ReadAllText(cachePath);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[ADDING] {newUri.AbsoluteUri}");
+
+                            /* Get json string in 3rd level from url in 2nd level, then write that to its own file. */
+                            json2 = await GetCatalogIndexUri(new Uri((string)items[i]["@id"]));
+                            /* Caching to disk (c). */
+                            WriteCacheFile(cachePath, json2, pageCommitTime);
+                        }
 
                         /* If not XML... */
                         if (json2[0] != '<')
@@ -440,7 +455,7 @@ namespace NuGet.CatalogVisitor
                             {
                                 var metadata = CatalogVisitorContext.GetMetadata((JObject)item);
 
-                                /* If within the dates specified. */
+                                // Add to empty list if in between start and end dates.
                                 if (metadata.CommitTimeStamp >= start && metadata.CommitTimeStamp <= end)
                                 {
                                     newList.Add(metadata);
@@ -448,10 +463,11 @@ namespace NuGet.CatalogVisitor
                             }
                         }
                     }
+                    /* Save cursor file to the time of now, return the HCV object. */
+                    /* Cursor support (d). */
+                    //_cursor.Save();                   
                 }
-                /* Save cursor file to the time of now, return the HCV object. */
-                /* Cursor support (d). */
-                _cursor.Save();
+
                 return newList;
             }
             catch (Exception ex)
@@ -565,6 +581,8 @@ namespace NuGet.CatalogVisitor
         /// <returns></returns>
         public async Task<string> GetCatalogIndexUri(Uri uri)
         {
+            Debug.Assert(uri.AbsoluteUri.StartsWith("http", StringComparison.OrdinalIgnoreCase), $"Invalid URL: {uri.AbsoluteUri}");
+
             using (HttpResponseMessage response = await _client.GetAsync(uri))
             {
                 if (response.Equals(null))

@@ -71,8 +71,7 @@ namespace FeedMirror
                         {
                             await stream.CopyToAsync(outputStream);
                         }
-
-                        /* 95.9% of my feed is used, should I get a new/multiple ones? */
+                        
                         await pushResource.Push(packagePath, "", 500, false, GetAPIKey, NullLogger.Instance);
                         pushed++;
 

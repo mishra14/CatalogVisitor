@@ -79,7 +79,7 @@ namespace NuGet.CatalogVisitor.Tests
         }
 
         [Fact]
-        public void GetRawPackagesTest()
+        public async Task GetRawPackagesTest()
         {
             // Arrange
             SetUpHttp();
@@ -87,14 +87,14 @@ namespace NuGet.CatalogVisitor.Tests
             HttpCatalogVisitor hcv = new HttpCatalogVisitor(_context);
 
             // Act
-            var packages = hcv.GetRawPackages(DateTimeOffset.MinValue, DateTimeOffset.UtcNow).Result;
+            var packages = await hcv.GetRawPackages(DateTimeOffset.MinValue, DateTimeOffset.UtcNow);
 
             // Assert
-            Assert.Equal(2700, packages.Count);
+            Assert.Equal(16, packages.Count);
         }
 
         [Fact]
-        public void GetPackagesTest()
+        public async Task GetPackagesTest()
         {
             // Arrange
             SetUpHttp();
@@ -102,14 +102,14 @@ namespace NuGet.CatalogVisitor.Tests
             HttpCatalogVisitor hcv = new HttpCatalogVisitor(_context);
 
             // Act
-            var packages = hcv.GetPackages(DateTimeOffset.MinValue, DateTimeOffset.UtcNow).Result;
+            var packages = await hcv.GetPackages(DateTimeOffset.MinValue, DateTimeOffset.UtcNow);
 
             // Assert
-            Assert.Equal(2700, packages.Count);
+            Assert.Equal(16, packages.Count);
         }
 
         [Fact]
-        public void GetPackagesCursorTest()
+        public async Task GetPackagesCursorTest()
         {
             // Arrange
             var tempDir = Path.Combine(Environment.GetEnvironmentVariable("temp"), Guid.NewGuid().ToString());
@@ -126,49 +126,46 @@ namespace NuGet.CatalogVisitor.Tests
             cursor.Date = new DateTimeOffset(2011, 3, 24, 7, 0, 0, new TimeSpan(-8, 0, 0)); // from that date to now
 
             // Act
-            var packages = hcv.GetPackages(cursor).Result;
+            var packages = await hcv.GetPackages(cursor);
 
             // Assert
-            Assert.Equal(2700, packages.Count);
+            Assert.Equal(16, packages.Count);
         }
 
         [Fact]
-        public void GetPackagesDatesTest()
+        public async Task GetPackagesDatesTest()
         {
             // Arrange
             SetUpHttp();
 
             HttpCatalogVisitor hcv = new HttpCatalogVisitor(_context);
 
-            DateTimeOffset start = new DateTimeOffset(2015, 2, 1, 7, 0, 0, new TimeSpan(-8, 0, 0));
+            DateTimeOffset start = new DateTimeOffset(2014, 2, 1, 7, 0, 0, new TimeSpan(-8, 0, 0));
             DateTimeOffset end = DateTimeOffset.UtcNow;
 
             // Act
-            var packages = hcv.GetPackages(start, end).Result;
+            var packages = await hcv.GetPackages(start, end);
 
             // Assert
-            Assert.Equal(460, packages.Count);
+            Assert.Equal(16, packages.Count);
         }
 
         /// <summary>
         /// HELPER METHOD
         /// </summary>
-        private IEnumerable<PackageMetadata> GetPackagesDatesHelper()
+        private async Task<IEnumerable<PackageMetadata>> GetPackagesDatesHelper(DateTimeOffset start, DateTimeOffset end)
         {
             // Arrange
             SetUpHttp();
 
             HttpCatalogVisitor hcv = new HttpCatalogVisitor(_context);
 
-            DateTimeOffset start = new DateTimeOffset(2015, 2, 1, 7, 0, 0, new TimeSpan(-8, 0, 0));
-            DateTimeOffset end = DateTimeOffset.UtcNow;
-
             // Act
-            var packages = hcv.GetPackages(start, end).Result;
+            var packages = await hcv.GetPackages(start, end);
 
-            var firstTen = packages.Take(10);
+            var result = packages.Take(4);
 
-            return firstTen;
+            return result;
         }
 
         [Fact]
@@ -209,15 +206,17 @@ namespace NuGet.CatalogVisitor.Tests
             {
                 HttpPackageDownloader hpd = new HttpPackageDownloader();
 
-                DownloadPackagesDateRangeTestHelper(new DateTimeOffset(2015, 2, 1, 6, 22, 45, new TimeSpan(0)), new DateTimeOffset(2015, 2, 1, 6, 22, 46, new TimeSpan(0)), workingDirectory);
+                /* Yesterday */
+                DownloadPackagesDateRangeTestHelper(new DateTimeOffset(2015, 2, 1, 0, 0, 0, new TimeSpan(0)), 
+                    new DateTimeOffset(2015, 2, 2, 0, 0, 0, new TimeSpan(0)), workingDirectory);
 
-                string tempDirectory = Path.Combine(workingDirectory, "HelloWorld.Toolkit".Replace(".", "-") + "1.0.0".Replace(".", "-") + ".nupkg");
+                string tempDirectory = Path.Combine(workingDirectory, "Altairis.Web.Security".Replace(".", "-") + "2.0.0".Replace(".", "-") + ".nupkg");
 
                 var myPackage = new PackageArchiveReader(tempDirectory);
                 var id = myPackage.GetIdentity().Id;
                 var version = myPackage.GetIdentity().Version;
-                Assert.Equal(id, "HelloWorld.Toolkit");
-                Assert.Equal(version.ToNormalizedString(), "1.0.0");
+                Assert.Equal(id, "Altairis.Web.Security");
+                Assert.Equal(version.ToNormalizedString(), "2.0.0");
             }
         }
 
@@ -227,16 +226,17 @@ namespace NuGet.CatalogVisitor.Tests
         /// <param name="start"></param>
         /// <param name="end"></param>
         /// <returns></returns>
-        private void DownloadPackagesDateRangeTestHelper(DateTimeOffset start, DateTimeOffset end, string downloadDirectory)
+        private async void DownloadPackagesDateRangeTestHelper(DateTimeOffset start, DateTimeOffset end, string downloadDirectory)
         {
             HttpPackageDownloader hpd = new HttpPackageDownloader();
 
-            var packages = GetPackagesDatesHelper();
+            var packages = await GetPackagesDatesHelper(start, end);
 
             foreach (var package in packages)
             {
-                var nupkgName = package.Id.Replace(".", "-") + package.Version.ToString().Replace(".", "-") + ".nupkg";
+                var nupkgName = package.Id.Replace(".", "-") + package.Version.ToNormalizedString().Replace(".", "-") + ".nupkg";
                 string tempDirectory = Path.Combine(downloadDirectory, nupkgName);
+                Console.WriteLine(tempDirectory);
                 hpd.DownloadPackage(package.Id, package.Version, tempDirectory);
             }
         }

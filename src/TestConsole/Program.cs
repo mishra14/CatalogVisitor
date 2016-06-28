@@ -5,8 +5,11 @@ namespace TestConsole
 {
     class Program
     {
-        static void Main()
+        static void Main(string[] args)
         {
+            var feed = args[0];
+
+
             CatalogVisitorContext context = new CatalogVisitorContext();
             HttpCatalogVisitor visitor = new HttpCatalogVisitor(context);
             HttpPackageDownloader HPD = new HttpPackageDownloader();
