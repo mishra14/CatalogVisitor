@@ -22,5 +22,10 @@ namespace NuGet.CatalogVisitor
         public string Id { get; }
 
         public DateTimeOffset CommitTimeStamp { get; }
+
+        public override string ToString()
+        {
+            return $"{Id} {Version}";
+        }
     }
 }

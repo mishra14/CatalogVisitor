@@ -1,5 +1,7 @@
 ﻿using NuGet.CatalogVisitor;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace TestConsole
 {
@@ -7,19 +9,46 @@ namespace TestConsole
     {
         static void Main(string[] args)
         {
+            Run(args).Wait();
+        }
+
+        private static async Task Run(string[] args)
+        {
             var feed = args[0];
 
 
             CatalogVisitorContext context = new CatalogVisitorContext();
+            context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
+            context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
+            context.CatalogCacheFolder = "C:\\CatalogCache\\";
+            //FileCursor cursor = FileCursor.Load("C:\\CatalogCache\\httpPackageDownloaderCursor.txt");
             HttpCatalogVisitor visitor = new HttpCatalogVisitor(context);
-            HttpPackageDownloader HPD = new HttpPackageDownloader();
+            HttpPackageDownloader HPD = new HttpPackageDownloader(context);
+
+            /* Gets latest version for each ID from date in cursor to now. */
+            FileCursor cursor = new FileCursor();
+            cursor.Date = new DateTimeOffset(2016, 6, 28, 15, 0, 0, new TimeSpan(0, 0, 0)); // from today, last half hour, to now
+            cursor.CursorPath = "C:\\CatalogCache\\mainCursor.txt";
+            IReadOnlyList<PackageMetadata> packages = await visitor.GetPackages(cursor);
+            foreach (PackageMetadata package in packages)
+            {
+                Console.WriteLine("Package - ID: {0}, Version: {1}", package.Id, package.Version);
+            }
+            cursor.Save();
+
+
 
             //HPD.DownloadPackage("Passive", new NuGetVersion("0.2.0"), "C:\\CatalogCache\\CurrentHPD.nupkg");
 
             /* Doesn't make main async. */
-            var result = HPD.DownloadPackagesDateRange(new DateTimeOffset(2015, 2, 1, 14, 0, 0, new TimeSpan(0)), new DateTimeOffset(2015, 2, 1, 15, 1, 5, new TimeSpan(0)), @"c:\catalogcache\downloads").Result;
+            /*
+            var result = await HPD.DownloadPackagesDateRange(new DateTimeOffset(2015, 2, 1, 14, 0, 0, new TimeSpan(0)), new DateTimeOffset(2015, 2, 1, 15, 1, 5, new TimeSpan(0)), @"c:\catalogcache\downloads");
+            cursor.Date = new DateTimeOffset(2015, 2, 1, 15, 1, 5, new TimeSpan(0));
+            cursor.Save();
+            */
+
             //var result = HPD.DownloadPackagesDateRange(DateTimeOffset.MinValue, DateTimeOffset.UtcNow).Result;
-            
+
 
             /* Gets all packages
             IReadOnlyList<PackageMetadata> packages = visitor.GetPackages().Result;
@@ -28,20 +57,6 @@ namespace TestConsole
                 Console.WriteLine("Package - ID: {0}, Version: {1}", package.Id, package.Version);
             }
             */
-
-            /* Gets latest version for each ID from date in cursor to now.
-            FileCursor cursor = new FileCursor();
-            cursor.Date = new DateTimeOffset(2015, 2, 1, 7, 0, 0, new TimeSpan(-8, 0, 0)); // from that date to now
-            cursor.CursorPath = "C:\\CatalogCache\\mainCursor.txt";
-            IReadOnlyList<PackageMetadata> packages = visitor.GetPackages(cursor).Result;
-            foreach (PackageMetadata package in packages)
-            {
-                Console.WriteLine("Package - ID: {0}, Version: {1}", package.Id, package.Version);
-            }
-            */
-
-
-
 
 
 

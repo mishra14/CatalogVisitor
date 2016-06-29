@@ -26,7 +26,7 @@ namespace FeedMirror
         private SourceRepository _outputSource;
 
         /// <summary>
-        /// User passes in their feed with context.Feed.
+        /// User passes in their feed with catalogContext.Feed...
         /// </summary>
         /// <param name="catalogContext"></param>
         /// <param name="outputSource"></param>
@@ -51,19 +51,21 @@ namespace FeedMirror
             //directory.GetFiles("*.nupkg");
             foreach (var package in packages)
             {
+                /* Not hard coded: added onto end of context.CatalogCache... */
                 var packagePath = _context.CatalogCacheFolder + "Mirror-" + package.Id + "-" + package.Version.ToNormalizedString() + ".nupkg";
-                Uri newUri = new Uri(packagePath);
                 /* Do nothing if it is older than the cursor and exists. */
-                if (start > package.CommitTimeStamp && end <= package.CommitTimeStamp && File.Exists(packagePath))
+                if ((start > package.CommitTimeStamp || end <= package.CommitTimeStamp) && File.Exists(packagePath))
                 {
-                    Console.WriteLine($"[CACHE] {newUri.AbsoluteUri}");
+                    Console.WriteLine($"[CACHE] {packagePath}");
                 }
-                else
+                else if (start < package.CommitTimeStamp && end >= package.CommitTimeStamp)
                 {
-                    Console.WriteLine($"[GET] {newUri.AbsoluteUri}");
+                    Console.WriteLine($"[GET] {packagePath}");
                     HttpClient client = new HttpClient();
-                    var myUrl = "https://api.nuget.org/v3-flatcontainer/" + package.Id.ToLower() + "/" + package.Version.ToString().ToLower() + "/" + package.Id.ToLower() + "." + 
-                        package.Version.ToString().ToLower() + ".nupkg";
+                    var myUrl = _context.IncomingFeedUrl;
+                    myUrl = myUrl.Replace("{id}", package.Id.ToLower());
+                    myUrl = myUrl.Replace("{version}", package.Version.ToNormalizedString().ToLower());
+                    myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
                     try
                     {
                         using (var stream = await client.GetStreamAsync(myUrl))
@@ -92,6 +94,11 @@ namespace FeedMirror
             return pushed;
         }
 
+        /// <summary>
+        /// How do I hide this key? Do I need to pass in this key since it changes based on feed passed in?
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
         private static string GetAPIKey(string source)
         {
             return "5d5886c5-e666-4d71-aaef-0af559d3d45a";

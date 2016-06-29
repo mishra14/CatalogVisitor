@@ -23,6 +23,7 @@ namespace FeedMirror
                 /* This url is where user would set their own feed source to get the packages from. */
                 CatalogVisitorContext context = new CatalogVisitorContext("https://api.nuget.org/v3/index.json");
                 context.CatalogCacheFolder = "C:\\CatalogCache\\MirrorPackages\\";
+                context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
                 string mySource = "https://www.myget.org/F/theotherfeed/api/v3/index.json";
 
                 var cursor = FileCursor.Load("C:\\CatalogCache\\packageMirrorCursor.txt");

@@ -1,5 +1,7 @@
 ﻿using Xunit;
 using FeedMirror;
+using System;
+using System.Threading.Tasks;
 
 namespace NuGet.CatalogVisitor.Tests
 {
@@ -48,25 +50,24 @@ namespace NuGet.CatalogVisitor.Tests
             _context.MessageHandler = testHandler;
         }
 
-        [Fact(Skip = "fix me!")]
-        public void MirrorPackagesTest()
+        /*(Skip = "fix me!")*/
+        [Fact]
+        public async Task MirrorPackagesTest()
         {
             // Arrange
             SetUpHttp();
 
-            //CatalogVisitorContext myContext = new CatalogVisitorContext();
-            //myContext.CatalogCacheFolder = "C:\\CatalogCache\\MirrorPackages\\";
             _context.CatalogCacheFolder = "C:\\CatalogCache\\MirrorPackages\\";
-            //myContext.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
-            string mySource = "https://www.myget.org/F/kaswan/api/v3/index.json";
+            _context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
+            string mySource = "https://www.myget.org/F/theotherfeed/api/v3/index.json";
 
             PackageMirror myPM = new PackageMirror(_context, mySource);
 
             // Act
-            //var pushed = myPM.MirrorPackages().Result;
+            var pushed = await myPM.MirrorPackages(DateTimeOffset.MinValue, DateTimeOffset.UtcNow);
 
             // Assert
-            //Assert.NotNull(pushed);
+            Assert.Equal(16, pushed);
         }
     }
 }

@@ -16,6 +16,6 @@ namespace NuGet.CatalogVisitor
         /// <param name="version"></param>
         /// <param name="downloadDirectory"></param>
         /// <returns></returns>
-        void DownloadPackage(string id, NuGetVersion version, string downloadDirectory);
+        Task DownloadPackage(string id, NuGetVersion version, string downloadDirectory);
     }
 }

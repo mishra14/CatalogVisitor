@@ -184,13 +184,17 @@ namespace NuGet.CatalogVisitor.Tests
         }
 
         [Fact]
-        public void DownloadPackageTest()
+        public async Task DownloadPackageTest()
         {
-            HttpPackageDownloader hpd = new HttpPackageDownloader();
+            CatalogVisitorContext context = new CatalogVisitorContext();
+            context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
+            context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
+            context.CatalogCacheFolder = "C:\\CatalogCache\\DownloadPackages\\";
+            HttpPackageDownloader hpd = new HttpPackageDownloader(context);
 
-            hpd.DownloadPackage("Passive", new Versioning.NuGetVersion("0.2.0"), "C:\\CatalogCache\\DownloadPackages\\testDownloadPackage.nupkg");
+            await hpd.DownloadPackage("Passive", new Versioning.NuGetVersion("0.2.0"), "C:\\CatalogCache\\DownloadPackages\\testDownloadPackage.nupkg");
 
-            // https://api.nuget.org/v3-flatcontainer/adam.jsgenerator/1.1.0/adam.jsgenerator.1.1.0.nupkg
+            // ex: https://api.nuget.org/v3-flatcontainer/adam.jsgenerator/1.1.0/adam.jsgenerator.1.1.0.nupkg
 
             var myPackage = new PackageArchiveReader("C:\\CatalogCache\\DownloadPackages\\testDownloadPackage.nupkg");
             var id = myPackage.GetIdentity().Id;
@@ -199,15 +203,35 @@ namespace NuGet.CatalogVisitor.Tests
             Assert.Equal(version.ToNormalizedString(), "0.2.0");
         }
 
+        //[Fact]
+        //public async Task DownloadPackageTestDateRange()
+        //{
+        //    CatalogVisitorContext context = new CatalogVisitorContext();
+        //    context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
+        //    context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
+        //    context.CatalogCacheFolder = "C:\\CatalogCache\\DownloadPackages\\";
+        //    HttpPackageDownloader hpd = new HttpPackageDownloader(context);
+
+        //    await hpd.DownloadPackagesDateRange(new DateTimeOffset(2015, 2, 1, 0, 0, 0, new TimeSpan(0)), new DateTimeOffset(2015, 2, 2, 0, 0, 0, new TimeSpan(0)), "C:\\CatalogCache\\DownloadPackages\\");
+
+        //    // ex: https://api.nuget.org/v3-flatcontainer/adam.jsgenerator/1.1.0/adam.jsgenerator.1.1.0.nupkg
+
+        //    var myPackage = new PackageArchiveReader("C:\\CatalogCache\\DownloadPackages\\Altairis-Web-Security2-0-0.nupkg");
+        //    var id = myPackage.GetIdentity().Id;
+        //    var version = myPackage.GetIdentity().Version;
+        //    Assert.Equal(id, "Altairis.Web.Security");
+        //    Assert.Equal(version.ToNormalizedString(), "2.0.0");
+        //}
+
         [Fact]
         public void DownloadPackagesDateRangeTest()
         {
             using (var workingDirectory = TestFileSystemUtility.CreateRandomTestFolder())
             {
-                HttpPackageDownloader hpd = new HttpPackageDownloader();
+                _context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
+                HttpPackageDownloader hpd = new HttpPackageDownloader(_context);
 
-                /* Yesterday */
-                DownloadPackagesDateRangeTestHelper(new DateTimeOffset(2015, 2, 1, 0, 0, 0, new TimeSpan(0)), 
+                DownloadPackagesDateRangeTestHelper(new DateTimeOffset(2015, 2, 1, 0, 0, 0, new TimeSpan(0)),
                     new DateTimeOffset(2015, 2, 2, 0, 0, 0, new TimeSpan(0)), workingDirectory);
 
                 string tempDirectory = Path.Combine(workingDirectory, "Altairis.Web.Security".Replace(".", "-") + "2.0.0".Replace(".", "-") + ".nupkg");
@@ -228,7 +252,7 @@ namespace NuGet.CatalogVisitor.Tests
         /// <returns></returns>
         private async void DownloadPackagesDateRangeTestHelper(DateTimeOffset start, DateTimeOffset end, string downloadDirectory)
         {
-            HttpPackageDownloader hpd = new HttpPackageDownloader();
+            HttpPackageDownloader hpd = new HttpPackageDownloader(_context);
 
             var packages = await GetPackagesDatesHelper(start, end);
 
@@ -237,7 +261,7 @@ namespace NuGet.CatalogVisitor.Tests
                 var nupkgName = package.Id.Replace(".", "-") + package.Version.ToNormalizedString().Replace(".", "-") + ".nupkg";
                 string tempDirectory = Path.Combine(downloadDirectory, nupkgName);
                 Console.WriteLine(tempDirectory);
-                hpd.DownloadPackage(package.Id, package.Version, tempDirectory);
+                await hpd.DownloadPackage(package.Id, package.Version, tempDirectory);
             }
         }
 

@@ -16,8 +16,15 @@ namespace NuGet.CatalogVisitor
         {
             FeedIndexJsonUrl = feed;
         }
-
+        
         public string FeedIndexJsonUrl { get; set; }
+
+        /// <summary>
+        /// If you would like id, version, or time stamp used,
+        /// please use {id}, {version}, and {commitTimeStamp}
+        /// exactly as shown above in your url to be replaced.
+        /// </summary>
+        public string IncomingFeedUrl { get; set; }
 
         public HttpMessageHandler MessageHandler { get; set; }
 
