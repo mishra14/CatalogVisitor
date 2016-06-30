@@ -49,8 +49,7 @@ namespace NuGet.CatalogVisitor.Tests
 
             _context.MessageHandler = testHandler;
         }
-
-        /*(Skip = "fix me!")*/
+        
         [Fact]
         public async Task MirrorPackagesTest()
         {

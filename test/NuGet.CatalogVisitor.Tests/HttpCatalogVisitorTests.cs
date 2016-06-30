@@ -1,8 +1,6 @@
 ﻿using NuGet.Packaging;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Xunit;
@@ -12,30 +10,6 @@ namespace NuGet.CatalogVisitor.Tests
     public class HttpCatalogVisitorTests
     {
         CatalogVisitorContext _context = new CatalogVisitorContext();
-
-        //[Fact]
-        //public async Task GetRawPackagesTest()
-        //{
-        //    // Arrange
-        //    CatalogVisitorContext context = new CatalogVisitorContext();
-        //    context.NoCache = true;
-        //    context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
-
-        //    var testHandler = new TestMessageHandler();
-
-        //    var rootIndex = GetResource("NuGet.CatalogVisitor.Tests.content.rootIndex.json");
-
-        //    testHandler.Pages.TryAdd("https://api.nuget.org/v3/index.json", rootIndex);
-        //    context.MessageHandler = testHandler;
-
-        //    HttpCatalogVisitor hcv = new HttpCatalogVisitor(context);
-
-        //    // Act
-        //    var packages = await hcv.GetRawPackages();
-
-        //    // Assert
-        //    Assert.Equal(2700, packages.Count);
-        //}
 
         private void SetUpHttp()
         {
@@ -76,6 +50,22 @@ namespace NuGet.CatalogVisitor.Tests
             }
 
             _context.MessageHandler = testHandler;
+            _context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
+        }
+
+        [Fact]
+        public async Task GetGlobbingPackagesTest()
+        {
+            // Arrange
+            SetUpHttp();
+
+            HttpCatalogVisitor hcv = new HttpCatalogVisitor(_context);
+
+            // Act
+            var packages = await hcv.GetPackages(DateTimeOffset.MinValue, DateTimeOffset.UtcNow, "*.nupkg");
+
+            // Assert
+            Assert.Equal(16, packages.Count);
         }
 
         [Fact]
@@ -150,24 +140,6 @@ namespace NuGet.CatalogVisitor.Tests
             Assert.Equal(16, packages.Count);
         }
 
-        /// <summary>
-        /// HELPER METHOD
-        /// </summary>
-        private async Task<IEnumerable<PackageMetadata>> GetPackagesDatesHelper(DateTimeOffset start, DateTimeOffset end)
-        {
-            // Arrange
-            SetUpHttp();
-
-            HttpCatalogVisitor hcv = new HttpCatalogVisitor(_context);
-
-            // Act
-            var packages = await hcv.GetPackages(start, end);
-
-            var result = packages.Take(4);
-
-            return result;
-        }
-
         [Fact]
         public void WriteToFileFromFolderTest()
         {
@@ -203,66 +175,22 @@ namespace NuGet.CatalogVisitor.Tests
             Assert.Equal(version.ToNormalizedString(), "0.2.0");
         }
 
-        //[Fact]
-        //public async Task DownloadPackageTestDateRange()
-        //{
-        //    CatalogVisitorContext context = new CatalogVisitorContext();
-        //    context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
-        //    context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
-        //    context.CatalogCacheFolder = "C:\\CatalogCache\\DownloadPackages\\";
-        //    HttpPackageDownloader hpd = new HttpPackageDownloader(context);
-
-        //    await hpd.DownloadPackagesDateRange(new DateTimeOffset(2015, 2, 1, 0, 0, 0, new TimeSpan(0)), new DateTimeOffset(2015, 2, 2, 0, 0, 0, new TimeSpan(0)), "C:\\CatalogCache\\DownloadPackages\\");
-
-        //    // ex: https://api.nuget.org/v3-flatcontainer/adam.jsgenerator/1.1.0/adam.jsgenerator.1.1.0.nupkg
-
-        //    var myPackage = new PackageArchiveReader("C:\\CatalogCache\\DownloadPackages\\Altairis-Web-Security2-0-0.nupkg");
-        //    var id = myPackage.GetIdentity().Id;
-        //    var version = myPackage.GetIdentity().Version;
-        //    Assert.Equal(id, "Altairis.Web.Security");
-        //    Assert.Equal(version.ToNormalizedString(), "2.0.0");
-        //}
-
         [Fact]
-        public void DownloadPackagesDateRangeTest()
+        public async Task DownloadPackageTestDateRange()
         {
-            using (var workingDirectory = TestFileSystemUtility.CreateRandomTestFolder())
-            {
-                _context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
-                HttpPackageDownloader hpd = new HttpPackageDownloader(_context);
-
-                DownloadPackagesDateRangeTestHelper(new DateTimeOffset(2015, 2, 1, 0, 0, 0, new TimeSpan(0)),
-                    new DateTimeOffset(2015, 2, 2, 0, 0, 0, new TimeSpan(0)), workingDirectory);
-
-                string tempDirectory = Path.Combine(workingDirectory, "Altairis.Web.Security".Replace(".", "-") + "2.0.0".Replace(".", "-") + ".nupkg");
-
-                var myPackage = new PackageArchiveReader(tempDirectory);
-                var id = myPackage.GetIdentity().Id;
-                var version = myPackage.GetIdentity().Version;
-                Assert.Equal(id, "Altairis.Web.Security");
-                Assert.Equal(version.ToNormalizedString(), "2.0.0");
-            }
-        }
-
-        /// <summary>
-        /// FOR TESTING
-        /// </summary>
-        /// <param name="start"></param>
-        /// <param name="end"></param>
-        /// <returns></returns>
-        private async void DownloadPackagesDateRangeTestHelper(DateTimeOffset start, DateTimeOffset end, string downloadDirectory)
-        {
+            SetUpHttp();
+            _context.CatalogCacheFolder = "C:\\CatalogCache\\DownloadPackagesTest\\";
             HttpPackageDownloader hpd = new HttpPackageDownloader(_context);
 
-            var packages = await GetPackagesDatesHelper(start, end);
+            await hpd.DownloadPackagesDateRange(new DateTimeOffset(2015, 2, 1, 0, 0, 0, new TimeSpan(0)), new DateTimeOffset(2015, 2, 2, 0, 0, 0, new TimeSpan(0)), "C:\\CatalogCache\\DownloadPackagesTest\\");
 
-            foreach (var package in packages)
-            {
-                var nupkgName = package.Id.Replace(".", "-") + package.Version.ToNormalizedString().Replace(".", "-") + ".nupkg";
-                string tempDirectory = Path.Combine(downloadDirectory, nupkgName);
-                Console.WriteLine(tempDirectory);
-                await hpd.DownloadPackage(package.Id, package.Version, tempDirectory);
-            }
+            // ex: https://api.nuget.org/v3-flatcontainer/adam.jsgenerator/1.1.0/adam.jsgenerator.1.1.0.nupkg
+
+            var myPackage = new PackageArchiveReader("C:\\CatalogCache\\DownloadPackagesTest\\Altairis-Web-Security2-0-0.nupkg");
+            var id = myPackage.GetIdentity().Id;
+            var version = myPackage.GetIdentity().Version;
+            Assert.Equal(id, "Altairis.Web.Security");
+            Assert.Equal(version.ToNormalizedString(), "2.0.0");
         }
 
         public static string GetResource(string name)

@@ -65,11 +65,7 @@ namespace NuGet.CatalogVisitor
             {
                 /* Create new HttpCatalogVisitor object to return. */
                 List<PackageMetadata> newList = new List<PackageMetadata>();
-
-                /* Get cursor date, get json string from given uri (main index.json). */
-                /* Cursor support (d). */
-                //FileCursor.Load(_cursor.CursorPath);
-                //var fileDate = _cursor.Date;
+                
                 string json = await GetCatalogIndexUri(new Uri(_context.FeedIndexJsonUrl));
 
                 /* Parse json string and find second level - catalog - from index page. */
@@ -81,7 +77,7 @@ namespace NuGet.CatalogVisitor
                 root = await GetJson(catalogUri);
                 Uri baseUri = new Uri(_context.FeedIndexJsonUrl);
                 var fileName = baseUri.LocalPath.Replace("/", "-");
-                //var path = _context.CatalogCacheFolder + fileName;
+                var path = _context.CatalogCacheFolder + fileName;
                 /* Caching to disk (c). */
                 //WriteToFileFromFolder(path, json);
 
@@ -105,22 +101,11 @@ namespace NuGet.CatalogVisitor
                     if (start < pageCommitTime && end >= pageCommitTime)
                     {
                         useCache = false;
-
-                        // Check if we already have this file
-                        if (File.Exists(cachePath))
-                        {
-                            var timeStamp = File.GetLastWriteTimeUtc(cachePath);
-
-                            // If the timestamp hasn't changed we can use the same file
-                            useCache = timeStamp <= pageCommitTime;
-                        }
                     }
 
                     if (useCache)
                     {
                         Console.WriteLine($"[CACHE] {newUri.AbsoluteUri}");
-
-                        //json2 = File.ReadAllText(cachePath);
                     }
                     else
                     {
@@ -129,7 +114,7 @@ namespace NuGet.CatalogVisitor
                         /* Get json string in 3rd level from url in 2nd level, then write that to its own file. */
                         json2 = await GetCatalogIndexUri(new Uri((string)items[i]["@id"]));
                         /* Caching to disk (c). */
-                        WriteCacheFile(cachePath, json2, pageCommitTime);
+                        //WriteCacheFile(cachePath, json2, pageCommitTime);
 
                         /* If not XML... */
                         if (json2[0] != '<')
@@ -165,10 +150,7 @@ namespace NuGet.CatalogVisitor
                             }
                         }
                     }
-                }
-                /* Save cursor file to the time of now, return the HCV object. */
-                /* Cursor support (d). */
-                //_cursor.Save();                   
+                }                  
 
                 return newList;
             }
@@ -179,36 +161,44 @@ namespace NuGet.CatalogVisitor
             }
         }
 
-
-        // Figure out globbing!!! (implement by mon, 6/27)
+        /// <summary>
+        /// Return all packages within two dates that match a globbing pattern.
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <param name="packageIdPattern"></param>
+        /// <returns></returns>
         public async Task<IReadOnlyList<PackageMetadata>> GetPackages(DateTimeOffset start, DateTimeOffset end, string packageIdPattern)
         {
-            var myList = await GetPackages(start, end);
+            /* New directory on their machine containing these packages in this date range. */
+            Directory.CreateDirectory("C://GlobbingResults//");
+            HttpPackageDownloader hpd = new HttpPackageDownloader(_context);
+            await hpd.DownloadPackagesDateRange(start, end, "C://GlobbingResults//");
+            /* Get all potential files in that date range. */
+            IReadOnlyList<PackageMetadata> filesToMatch = await GetPackages(start, end);
+            /* Get all files matching pattern from directory made and downloaded to. */
+            string[] matchingFiles = Directory.GetFiles("C://GlobbingResults//", packageIdPattern);
             List<PackageMetadata> newList = new List<PackageMetadata>();
-            foreach (var element in myList)
+
+            for (int i = 0; i < matchingFiles.Length; i++)
             {
-                if (newList.Contains(element))
+                foreach (var fileMatch in filesToMatch)
                 {
-                    var index = newList.IndexOf(element);
-                    var containedElement = newList.ElementAt<PackageMetadata>(index);
-                    if (element.Version > containedElement.Version)
+                    var tempPath = "C://GlobbingResults//" + fileMatch.Id.Replace(".", "-") + fileMatch.Version.ToNormalizedString().Replace(".", "-") + ".nupkg";
+                    if (tempPath.Equals(matchingFiles[i]))
                     {
-                        //if (Matches globbing pattern)
-                        {
-                            // Replace most recent version in list.
-                            newList.Remove(containedElement);
-                            newList.Add(element);
-                        }
-                    }
-                }
-                else
-                {
-                    //if (Matches globbing pattern)
-                    {
-                        newList.Add(element);
+                        newList.Add(fileMatch);
                     }
                 }
             }
+
+            /* Delete files in and directory off their hard drive to save space. */
+            DirectoryInfo di = new DirectoryInfo("C://GlobbingResults//");
+            foreach (FileInfo file in di.GetFiles())
+            {
+                file.Delete();
+            }
+            Directory.Delete("C://GlobbingResults//");
             return newList;
         }
 
@@ -234,10 +224,6 @@ namespace NuGet.CatalogVisitor
                 /* Create new HttpCatalogVisitor object to return. */
                 List<PackageMetadata> newList = new List<PackageMetadata>();
 
-                /* Get cursor date, get json string from given uri (main index.json). */
-                /* Cursor support (d). */
-                //FileCursor.Load(_cursor.CursorPath);
-                //var fileDate = _cursor.Date;
                 string json = await GetCatalogIndexUri(new Uri(_context.FeedIndexJsonUrl));
 
                 /* Parse json string and find second level - catalog - from index page. */
@@ -249,7 +235,7 @@ namespace NuGet.CatalogVisitor
                 root = await GetJson(catalogUri);
                 Uri baseUri = new Uri(_context.FeedIndexJsonUrl);
                 var fileName = baseUri.LocalPath.Replace("/", "-");
-                //var path = _context.CatalogCacheFolder + fileName;
+                var path = _context.CatalogCacheFolder + fileName;
                 /* Caching to disk (c). */
                 //WriteToFileFromFolder(path, json);
 
@@ -272,15 +258,6 @@ namespace NuGet.CatalogVisitor
                     if (start < pageCommitTime && end >= pageCommitTime)
                     {
                         useCache = false;
-
-                        // Check if we already have this file
-                        if (File.Exists(cachePath))
-                        {
-                            var timeStamp = File.GetLastWriteTimeUtc(cachePath);
-
-                            // If the timestamp hasn't changed we can use the same file
-                            useCache = timeStamp >= pageCommitTime;
-                        }
                     }
 
                     string json2 = null;
@@ -288,8 +265,6 @@ namespace NuGet.CatalogVisitor
                     if (useCache)
                     {
                         Console.WriteLine($"[CACHE] {newUri.AbsoluteUri}");
-
-                        //json2 = File.ReadAllText(cachePath);
                     }
                     else
                     {
@@ -298,7 +273,7 @@ namespace NuGet.CatalogVisitor
                         /* Get json string in 3rd level from url in 2nd level, then write that to its own file. */
                         json2 = await GetCatalogIndexUri(new Uri((string)items[i]["@id"]));
                         /* Caching to disk (c). */
-                        WriteCacheFile(cachePath, json2, pageCommitTime);
+                        //WriteCacheFile(cachePath, json2, pageCommitTime);
                     }
 
                     /* If not XML... */
@@ -320,10 +295,7 @@ namespace NuGet.CatalogVisitor
                             }
                         }
                     }
-                }
-                /* Save cursor file to the time of now, return the HCV object. */
-                /* Cursor support (d). */
-                //_cursor.Save();   
+                } 
 
                 return newList;
             }
@@ -346,7 +318,6 @@ namespace NuGet.CatalogVisitor
             {
                 if (response.Equals(null))
                 {
-                    //response.EnsureSuccessStatusCode();
                     return null;
                 }
                 else

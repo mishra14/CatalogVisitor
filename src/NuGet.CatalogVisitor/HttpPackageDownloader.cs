@@ -32,7 +32,6 @@ namespace NuGet.CatalogVisitor
             var myUrl = _context.IncomingFeedUrl;
             myUrl = myUrl.Replace("{id}", id.ToLower());
             myUrl = myUrl.Replace("{version}", version.ToNormalizedString().ToLower());
-            //myUrl.Replace("{commitTimeStamp}", commitTimeStamp.ToString());
             Uri myUri = new Uri(myUrl);
             
 
@@ -40,40 +39,24 @@ namespace NuGet.CatalogVisitor
 
             try
             {
+                // Remove any existing files
+                if (File.Exists(nupkgPath))
+                {
+                    File.Delete(nupkgPath);
+                }
+
                 using (var request = new HttpRequestMessage(HttpMethod.Get, myUri))
                 using (Stream contentStream = await (await client.SendAsync(request)).Content.ReadAsStreamAsync(),
                     stream = new FileStream(nupkgPath, FileMode.Create, FileAccess.Write, FileShare.None, 16*1024, true))
                 {
-                    //using (var response = await client.GetAsync(myUrl))
-                    //{
-                    //if (response.IsSuccessStatusCode)
-                        //if (response.)
-                        //{
-                        
-                            // Remove any existing files
-                            if (File.Exists(nupkgPath))
-                            {
-                                File.Delete(nupkgPath);
-                            }
                     await contentStream.CopyToAsync(stream);
-
-                            //using (var outputStream = File.Create(nupkgPath))
-                            //using (var stream = await response.Content.ReadAsStreamAsync())
-                            //{
-                            //    await stream.CopyToAsync(outputStream);
-                            //}
-                        //}
-                       // else
-                       // {
-                            //Console.WriteLine($"Unable to download: {myUrl}");
-                       // }
                 }
             }
             catch (Exception ex)
             {
                 /* BlueprintCSS 1.0.0 url doesn't work */
                 //throw new InvalidOperationException($"Failed {myUrl} exception: {ex.ToString()}");
-                /* don't download package */
+                /* don't download package, don't throw error */
                 Console.WriteLine($"Not downloading {myUrl} because it does not exist: \r\n{ex}.");
             }
         }
@@ -85,37 +68,33 @@ namespace NuGet.CatalogVisitor
         /// <param name="start"></param>
         /// <param name="end"></param>
         /// <returns></returns>
-        public async Task<HttpCatalogVisitor> DownloadPackagesDateRange(DateTimeOffset start, DateTimeOffset end, string baseDirectory)
+        public async Task DownloadPackagesDateRange(DateTimeOffset start, DateTimeOffset end, string baseDirectory)
         {
-            //context.NoCache = true;
-            //context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
-            //FileCursor.Load(_cursor.CursorPath);
-            //var fileDate = _cursor.Date;
-
             HttpCatalogVisitor hcv = new HttpCatalogVisitor(_context);
 
             var packages = await hcv.GetPackages(start, end);
-
-            //string baseDirectory = _context.CatalogCacheFolder;
+            bool useCache = true;
 
             foreach (var package in packages)
             {
                 string tempDirectory = baseDirectory + package.Id.Replace(".", "-") + package.Version.ToNormalizedString().Replace(".", "-") + ".nupkg";
-                Uri newUri = new Uri(tempDirectory);
+                useCache = true;
+                if (start < package.CommitTimeStamp && end >= package.CommitTimeStamp)
+                {
+                    useCache = false;
+                }
+
                 /* Do nothing if it is older than the cursor and exists. */
-                if ((start > package.CommitTimeStamp || end <= package.CommitTimeStamp) && File.Exists(tempDirectory))
+                if (useCache)
                 {
                     Console.WriteLine($"[CACHE] {tempDirectory}");
                 }
-                else if (start < package.CommitTimeStamp && end >= package.CommitTimeStamp)
+                else
                 {
-                    Console.WriteLine($"[GET] {newUri.AbsoluteUri}");
-                    DownloadPackage(package.Id, package.Version, tempDirectory);
+                    Console.WriteLine($"[ADDING] {tempDirectory}");
+                    await DownloadPackage(package.Id, package.Version, tempDirectory);
                 }
             }
-
-            //_cursor.Save();
-            return hcv;
         }
     }
 }
