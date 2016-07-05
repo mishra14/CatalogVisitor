@@ -11,42 +11,44 @@ namespace FeedMirror
     /// </summary>
     class PackageFeedMirror
     {
-        static void Main()
+        static void Main(string[] args)
         {
-            Run().Wait();
+            Run(args).Wait();
         }
 
-        private static async Task Run()
+        private static async Task Run(string[] args)
         {
             try
             {
-                /* This url is where user would set their own feed source to get the packages from. */
-                CatalogVisitorContext context = new CatalogVisitorContext("https://api.nuget.org/v3/index.json");
+                var feed = args[0];
+                var output = args[1];
+
+                CatalogVisitorContext context = new CatalogVisitorContext();
                 context.CatalogCacheFolder = "C:\\CatalogCache\\MirrorPackages\\";
-                context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
-                string mySource = "https://www.myget.org/F/theotherfeed/api/v3/index.json";
-
-                var cursor = FileCursor.Load("C:\\CatalogCache\\packageMirrorCursor.txt");
-                //var endTime = new DateTimeOffset(2013, 7, 29, 1, 1, 1, new TimeSpan(0));
-                var endTime = DateTimeOffset.UtcNow;
-
-                Console.WriteLine($"Mirroring packages from {context.FeedIndexJsonUrl} between {cursor.Date.ToLocalTime()} and {endTime.ToLocalTime()}.");
+                //context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
+                //string mySource = "https://www.myget.org/F/theotherfeed/api/v3/index.json";
+                string mySource = output;
+                context.IncomingFeedUrl = feed;
+                context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
+                FileCursor cursor = new FileCursor();
+                cursor.Date = new DateTimeOffset(2016, 7, 5, 10, 5, 0, new TimeSpan(-7, 0, 0));
+                cursor.CursorPath = "C:\\CatalogCache\\mainMirrorCursor.txt";
+                Console.WriteLine($"Mirroring packages from {context.FeedIndexJsonUrl} between {cursor.Date.ToLocalTime()} and {DateTimeOffset.UtcNow.ToLocalTime()}.");
 
                 PackageMirror myPM = new PackageMirror(context, mySource);
 
-                var pushed = await myPM.MirrorPackages(cursor.Date, endTime);
+                var pushed = await myPM.MirrorPackages(cursor.Date, DateTimeOffset.UtcNow);
 
-                // Once all packages are updated it is safe to update the cursor to the original end time.
-                cursor.Date = endTime;
                 cursor.Save();
-
                 Console.WriteLine($"{pushed} pushed.");
+
+                Console.ForegroundColor = ConsoleColor.White;
             }
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex);
-                Console.Clear();
+                //Console.Clear();
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using NuGet.CatalogVisitor;
+﻿using FeedMirror;
+using NuGet.CatalogVisitor;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -17,7 +18,25 @@ namespace TestConsole
             var feed = args[0];
             var output = args[1];
 
+            CatalogVisitorContext context = new CatalogVisitorContext();
+            context.CatalogCacheFolder = "C:\\CatalogCache\\MirrorPackages\\";
+            context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
+            string mySource = "https://www.myget.org/F/theotherfeed/api/v3/index.json";
+            //context.IncomingFeedUrl = feed;
+            //string mySource = output;
+            context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
+            FileCursor cursor = new FileCursor();
+            cursor.Date = new DateTimeOffset(2016, 7, 5, 10, 5, 0, new TimeSpan(-7, 0, 0));
+            cursor.CursorPath = "C:\\CatalogCache\\mainMirrorCursor.txt";
 
+            PackageMirror myPM = new PackageMirror(context, mySource);
+
+            var pushed = await myPM.MirrorPackages(cursor.Date, DateTimeOffset.UtcNow);
+
+            cursor.Save();
+
+
+            /*
             CatalogVisitorContext context = new CatalogVisitorContext();
             context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
             context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
@@ -26,7 +45,7 @@ namespace TestConsole
             HttpCatalogVisitor visitor = new HttpCatalogVisitor(context);
             HttpPackageDownloader HPD = new HttpPackageDownloader(context);
 
-            /* Gets latest version for each ID from date in cursor to now. */
+            /* Gets latest version for each ID from date in cursor to now.
             FileCursor cursor = new FileCursor();
             cursor.Date = DateTimeOffset.UtcNow;
                 //new DateTimeOffset(2016, 7, 1, 10, 0, 0, new TimeSpan(0, 0, 0)); // from today, last half hour, to now
@@ -37,6 +56,7 @@ namespace TestConsole
                 Console.WriteLine("Package - ID: {0}, Version: {1}", package.Id, package.Version);
             }
             cursor.Save();
+            */
 
 
 

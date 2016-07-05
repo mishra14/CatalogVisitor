@@ -49,46 +49,54 @@ namespace FeedMirror
             var pushResource = _outputSource.GetResource<PackageUpdateResource>();
             int pushed = 0;
             //directory.GetFiles("*.nupkg");
-            foreach (var package in packages)
+            try
             {
-                /* Not hard coded: added onto end of context.CatalogCache... */
-                var packagePath = _context.CatalogCacheFolder + "Mirror-" + package.Id + "-" + package.Version.ToNormalizedString() + ".nupkg";
-                /* Do nothing if it is older than the cursor and exists. */
-                if ((start > package.CommitTimeStamp || end <= package.CommitTimeStamp) && File.Exists(packagePath))
+                foreach (var package in packages)
                 {
-                    Console.WriteLine($"[CACHE] {packagePath}");
-                }
-                else if (start < package.CommitTimeStamp && end >= package.CommitTimeStamp)
-                {
-                    Console.WriteLine($"[GET] {packagePath}");
-                    HttpClient client = new HttpClient();
-                    var myUrl = _context.IncomingFeedUrl;
-                    myUrl = myUrl.Replace("{id}", package.Id.ToLower());
-                    myUrl = myUrl.Replace("{version}", package.Version.ToNormalizedString().ToLower());
-                    myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
-                    try
+                    /* Not hard coded: added onto end of context.CatalogCache... */
+                    var packagePath = _context.CatalogCacheFolder + "Mirror-" + package.Id + "-" + package.Version.ToNormalizedString() + ".nupkg";
+                    /* Do nothing if it is older than the cursor and exists. */
+                    if ((start > package.CommitTimeStamp || end <= package.CommitTimeStamp) && File.Exists(packagePath))
                     {
-                        using (var stream = await client.GetStreamAsync(myUrl))
-                        using (var outputStream = File.Create(packagePath))
+                        Console.WriteLine($"[CACHE] {packagePath}");
+                    }
+                    else if (start < package.CommitTimeStamp && end >= package.CommitTimeStamp)
+                    {
+                        Console.WriteLine($"[GET] {packagePath}");
+                        HttpClient client = new HttpClient();
+                        var myUrl = _context.IncomingFeedUrl;
+                        myUrl = myUrl.Replace("{id}", package.Id.ToLower());
+                        myUrl = myUrl.Replace("{version}", package.Version.ToNormalizedString().ToLower());
+                        myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
+                        try
                         {
-                            await stream.CopyToAsync(outputStream);
-                        }
-                        
-                        await pushResource.Push(packagePath, "", 500, false, GetAPIKey, NullLogger.Instance);
-                        pushed++;
+                            using (var stream = await client.GetStreamAsync(myUrl))
+                            using (var outputStream = File.Create(packagePath))
+                            {
+                                await stream.CopyToAsync(outputStream);
+                            }
 
-                        // Clean up
-                        File.Delete(packagePath);
-                    }
-                    catch (Exception ex)
-                    {
-                        /* BlueprintCSS 1.0.0 url doesn't work */
-                        //throw new InvalidOperationException($"Failed {myUrl} exception: {ex.ToString()}");
-                        /* don't download package */
-                        Console.WriteLine($"Not downloading {myUrl} because it does not exist: \r\n{ex}.");
-                        throw;
+                            await pushResource.Push(packagePath, "", 500, false, GetAPIKey, NullLogger.Instance);
+                            pushed++;
+
+                            // Clean up
+                            File.Delete(packagePath);
+                        }
+                        catch (Exception ex)
+                        {
+                            /* BlueprintCSS 1.0.0 url doesn't work */
+                            //throw new InvalidOperationException($"Failed {myUrl} exception: {ex.ToString()}");
+                            /* don't download package */
+                            Console.WriteLine($"Not downloading {myUrl} because it does not exist: \r\n{ex}.");
+                            //throw;
+                            continue;
+                        }
                     }
                 }
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine("CRAZY IN THE LOOP");
             }
 
             return pushed;
