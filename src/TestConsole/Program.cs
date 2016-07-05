@@ -15,6 +15,7 @@ namespace TestConsole
         private static async Task Run(string[] args)
         {
             var feed = args[0];
+            var output = args[1];
 
 
             CatalogVisitorContext context = new CatalogVisitorContext();
