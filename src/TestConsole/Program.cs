@@ -27,7 +27,8 @@ namespace TestConsole
 
             /* Gets latest version for each ID from date in cursor to now. */
             FileCursor cursor = new FileCursor();
-            cursor.Date = new DateTimeOffset(2016, 6, 28, 15, 0, 0, new TimeSpan(0, 0, 0)); // from today, last half hour, to now
+            cursor.Date = DateTimeOffset.UtcNow;
+                //new DateTimeOffset(2016, 7, 1, 10, 0, 0, new TimeSpan(0, 0, 0)); // from today, last half hour, to now
             cursor.CursorPath = "C:\\CatalogCache\\mainCursor.txt";
             IReadOnlyList<PackageMetadata> packages = await visitor.GetPackages(cursor);
             foreach (PackageMetadata package in packages)

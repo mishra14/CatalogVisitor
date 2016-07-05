@@ -25,10 +25,6 @@ namespace NuGet.CatalogVisitor
             var handler = context.MessageHandler ?? new HttpClientHandler();
 
             _client = new HttpClient(handler);
-
-            // var contextPath = "C:\\CatalogCache\\";
-            //_context.CatalogCacheFolder = contextPath;
-            //_context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
         }
 
 
@@ -129,7 +125,7 @@ namespace NuGet.CatalogVisitor
                                 var metadata = CatalogVisitorContext.GetMetadata((JObject)item);
 
                                 // Add to empty list if in between start and end dates.
-                                if (metadata.CommitTimeStamp >= start && metadata.CommitTimeStamp <= end)
+                                if (metadata.CommitTimeStamp > start && metadata.CommitTimeStamp <= end)
                                 {
                                     if (newList.Contains(metadata))
                                     {

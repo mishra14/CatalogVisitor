@@ -120,6 +120,14 @@ namespace NuGet.CatalogVisitor.Tests
 
             // Assert
             Assert.Equal(16, packages.Count);
+
+            /* Delete files in and directory off their hard drive to save space. */
+            DirectoryInfo di = new DirectoryInfo(tempDir);
+            foreach (FileInfo file in di.GetFiles())
+            {
+                file.Delete();
+            }
+            Directory.Delete(tempDir);
         }
 
         [Fact]
