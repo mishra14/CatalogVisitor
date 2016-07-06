@@ -12,12 +12,13 @@ namespace NuGet.CatalogVisitor
     public class HttpCatalogVisitor : ICatalogVisitor
     {
         private CatalogVisitorContext _context = new CatalogVisitorContext();
-        //private FileCursor _cursor = new FileCursor("C:\\CatalogCache\\httpCatalogVisitor.txt", DateTimeOffset.MinValue);
         private HttpClient _client;
 
-        private static readonly List<PackageMetadata> _list = new List<PackageMetadata>();
-        private static List<PackageMetadata> _items = new List<PackageMetadata>();
-
+        /// <summary>
+        /// A class that has many functions that visit the catalog between specified dates
+        /// (or none at all) and does things to them (returns the packages, etc.).
+        /// </summary>
+        /// <param name="context">User tells the class where to get JSON from, etc.</param>
         public HttpCatalogVisitor(CatalogVisitorContext context)
         {
             _context = context;
@@ -27,10 +28,8 @@ namespace NuGet.CatalogVisitor
             _client = new HttpClient(handler);
         }
 
-
-
         /// <summary>
-        /// Gets all packages latest edit of each version.
+        /// Gets all packages' latest edit of each version.
         /// </summary>
         /// <returns></returns>
         public Task<IReadOnlyList<PackageMetadata>> GetPackages()

@@ -10,6 +10,13 @@ namespace NuGet.CatalogVisitor
     /// </summary>
     public class PackageMetadata
     {
+        /// <summary>
+        /// Constructor with all three private member vars
+        /// for convenience.
+        /// </summary>
+        /// <param name="version"></param>
+        /// <param name="id"></param>
+        /// <param name="commitTimeStamp"></param>
         public PackageMetadata(NuGetVersion version, string id, DateTimeOffset commitTimeStamp)
         {
             Version = version;
@@ -23,6 +30,10 @@ namespace NuGet.CatalogVisitor
 
         public DateTimeOffset CommitTimeStamp { get; }
 
+        /// <summary>
+        /// Make it easier to read which PackageMetadata we are looking at.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return $"{Id} {Version}";

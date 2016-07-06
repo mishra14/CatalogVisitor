@@ -13,8 +13,23 @@ public interface ICatalogVisitor
     /// <returns></returns>
     Task<IReadOnlyList<PackageMetadata>> GetPackages();
 
+    /// <summary>
+    /// Returns a list of PackageMetadata that holds the
+    /// current ID and Version of the Catalog of Packages
+    /// between two dates.
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
     Task<IReadOnlyList<PackageMetadata>> GetPackages(DateTimeOffset start, DateTimeOffset end);
 
+    /// <summary>
+    /// Returns a list of PackageMetadata that holds the
+    /// current ID and Version of the Catalog of Packages
+    /// between cursor date and now.
+    /// </summary>
+    /// <param name="cursor"></param>
+    /// <returns></returns>
     Task<IReadOnlyList<PackageMetadata>> GetPackages(ICursor cursor);
 
     /// <summary>
@@ -33,5 +48,12 @@ public interface ICatalogVisitor
     /// <returns></returns>
     Task<IReadOnlyList<PackageMetadata>> GetRawPackages();
 
+    /// <summary>
+    /// Returns all catalog entries including duplicates
+    /// between two dates.
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns></returns>
     Task<IReadOnlyList<PackageMetadata>> GetRawPackages(DateTimeOffset start, DateTimeOffset end);
 }

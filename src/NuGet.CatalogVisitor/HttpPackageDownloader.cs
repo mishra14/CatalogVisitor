@@ -8,9 +8,13 @@ namespace NuGet.CatalogVisitor
 {
     public class HttpPackageDownloader : IPackageDownloader
     {
-        private static FileCursor _cursor = new FileCursor("C:\\CatalogCache\\httpPackageDownloaderCursor.txt", DateTimeOffset.MinValue);
         private CatalogVisitorContext _context = new CatalogVisitorContext();
 
+        /// <summary>
+        /// A class that takes packages from a feed/url specified by the user in context
+        /// and downloads them to the user's drive, folder specified by the user in context.
+        /// </summary>
+        /// <param name="context"></param>
         public HttpPackageDownloader(CatalogVisitorContext context)
         {
             _context = context;
@@ -63,7 +67,6 @@ namespace NuGet.CatalogVisitor
 
         /// <summary>
         /// Downloads all packages in date range to directory.
-        /// Tues, 6/21 deadline.
         /// </summary>
         /// <param name="start"></param>
         /// <param name="end"></param>

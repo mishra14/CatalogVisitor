@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 namespace FeedMirror
 {
     /// <summary>
-    /// Create an exe that you can give to someone else 
+    /// An exe that I can give to someone else 
     /// that mirrors packages from one feed to another.
-    /// Make what you have in your API usable now :)
     /// </summary>
     class PackageFeedMirror
     {
@@ -25,8 +24,11 @@ namespace FeedMirror
 
                 CatalogVisitorContext context = new CatalogVisitorContext();
                 context.CatalogCacheFolder = "C:\\CatalogCache\\MirrorPackages\\";
+
+                /* Hard-coded examples in case you want to run in debug/not exe or command line. */
                 //context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
                 //string mySource = "https://www.myget.org/F/theotherfeed/api/v3/index.json";
+
                 string mySource = output;
                 context.IncomingFeedUrl = feed;
                 context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
@@ -41,14 +43,11 @@ namespace FeedMirror
 
                 cursor.Save();
                 Console.WriteLine($"{pushed} pushed.");
-
-                Console.ForegroundColor = ConsoleColor.White;
             }
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex);
-                //Console.Clear();
             }
         }
     }

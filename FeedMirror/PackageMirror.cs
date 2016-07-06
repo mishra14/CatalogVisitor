@@ -9,16 +9,6 @@ using NuGet.CatalogVisitor;
 
 namespace FeedMirror
 {
-    /// <summary>
-    /// [‎6/‎23/‎2016 2:38 PM] Justin Emgarten: 
-    /// yep!
-    /// and you can take the feedindexjsonurl as a command line parameter, but don't worry about that at first. Just hook it all up to mirror packages from nuget to your myget feed
-    /// also have a cursor(I think you already have that)
-    /// and just run it every 10 minutes or so and observe that it finds new packages
-    /// oh, you'll want to start the cursor out at like yesterday so you don't mirror 600K packages to your feed
-    /// let me know if you hit any issues. once it's going we can take a look at some command line libraries to help parse the inputs
-    /// then you can do mirror.exe -source http://nuget.org/.. -output http://myget..
-    /// </summary>
     public class PackageMirror
     {
         /* Default feed. */
@@ -26,7 +16,11 @@ namespace FeedMirror
         private SourceRepository _outputSource;
 
         /// <summary>
-        /// User passes in their feed with catalogContext.Feed...
+        /// User passes in their feed with catalogContext.IncomingFeedUrl,
+        /// user passes in feed they want to push to (myGet feed for example)
+        /// as a string (url?) as outputSource.
+        /// 
+        /// Mirrors packages from input to output.
         /// </summary>
         /// <param name="catalogContext"></param>
         /// <param name="outputSource"></param>
@@ -36,6 +30,16 @@ namespace FeedMirror
             _outputSource = Repository.Factory.GetCoreV3(outputSource);
         }
 
+        /// <summary>
+        /// The function that gets all packages using context user passes in,
+        /// and for each package, tries to open up the incomingFeedUrl and get the contents,
+        /// then push the contents to the feed specified.
+        /// If there is an error, it moves on to the next package, the error usually means
+        /// the package doesn't exist so we don't want to push it or stop the program.
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
         public async Task<int> MirrorPackages(DateTimeOffset start, DateTimeOffset end)
         {
             // Get packages
@@ -48,55 +52,50 @@ namespace FeedMirror
             // Push packages
             var pushResource = _outputSource.GetResource<PackageUpdateResource>();
             int pushed = 0;
-            //directory.GetFiles("*.nupkg");
-            try
+
+
+            foreach (var package in packages)
             {
-                foreach (var package in packages)
+                /* Not hard coded: added onto end of context.CatalogCache... */
+                var packagePath = _context.CatalogCacheFolder + "Mirror-" + package.Id + "-" + package.Version.ToNormalizedString() + ".nupkg";
+                /* Do nothing if it is older than the cursor and exists. */
+                if ((start > package.CommitTimeStamp || end <= package.CommitTimeStamp) && File.Exists(packagePath))
                 {
-                    /* Not hard coded: added onto end of context.CatalogCache... */
-                    var packagePath = _context.CatalogCacheFolder + "Mirror-" + package.Id + "-" + package.Version.ToNormalizedString() + ".nupkg";
-                    /* Do nothing if it is older than the cursor and exists. */
-                    if ((start > package.CommitTimeStamp || end <= package.CommitTimeStamp) && File.Exists(packagePath))
+                    Console.WriteLine($"[CACHE] {packagePath}");
+                }
+                else if (start < package.CommitTimeStamp && end >= package.CommitTimeStamp)
+                {
+                    Console.WriteLine($"[GET] {packagePath}");
+                    HttpClient client = new HttpClient();
+                    var myUrl = _context.IncomingFeedUrl;
+                    myUrl = myUrl.Replace("{id}", package.Id.ToLower());
+                    myUrl = myUrl.Replace("{version}", package.Version.ToNormalizedString().ToLower());
+                    myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
+                    try
                     {
-                        Console.WriteLine($"[CACHE] {packagePath}");
+                        using (var stream = await client.GetStreamAsync(myUrl))
+                        using (var outputStream = File.Create(packagePath))
+                        {
+                            await stream.CopyToAsync(outputStream);
+                        }
+
+                        await pushResource.Push(packagePath, "", 500, false, GetAPIKey, NullLogger.Instance);
+                        pushed++;
+
+                        // Clean up
+                        File.Delete(packagePath);
                     }
-                    else if (start < package.CommitTimeStamp && end >= package.CommitTimeStamp)
+                    catch (Exception ex)
                     {
-                        Console.WriteLine($"[GET] {packagePath}");
-                        HttpClient client = new HttpClient();
-                        var myUrl = _context.IncomingFeedUrl;
-                        myUrl = myUrl.Replace("{id}", package.Id.ToLower());
-                        myUrl = myUrl.Replace("{version}", package.Version.ToNormalizedString().ToLower());
-                        myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
-                        try
-                        {
-                            using (var stream = await client.GetStreamAsync(myUrl))
-                            using (var outputStream = File.Create(packagePath))
-                            {
-                                await stream.CopyToAsync(outputStream);
-                            }
-
-                            await pushResource.Push(packagePath, "", 500, false, GetAPIKey, NullLogger.Instance);
-                            pushed++;
-
-                            // Clean up
-                            File.Delete(packagePath);
-                        }
-                        catch (Exception ex)
-                        {
-                            /* BlueprintCSS 1.0.0 url doesn't work */
-                            //throw new InvalidOperationException($"Failed {myUrl} exception: {ex.ToString()}");
-                            /* don't download package */
-                            Console.WriteLine($"Not downloading {myUrl} because it does not exist: \r\n{ex}.");
-                            //throw;
-                            continue;
-                        }
+                        /* BlueprintCSS 1.0.0 url doesn't work */
+                        //throw new InvalidOperationException($"Failed {myUrl} exception: {ex.ToString()}");
+                        /* don't download package */
+                        Console.WriteLine($"Not downloading {myUrl} because it does not exist: \r\n{ex}.");
+                        //throw;
+                        /* Move onto next var in loop, don't throw to catch in main, etc. */
+                        continue;
                     }
                 }
-            }
-            catch (Exception exc)
-            {
-                Console.WriteLine("CRAZY IN THE LOOP");
             }
 
             return pushed;
