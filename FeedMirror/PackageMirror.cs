@@ -6,6 +6,7 @@ using NuGet.Common;
 using System.IO;
 using System.Net.Http;
 using NuGet.CatalogVisitor;
+using System.Text.RegularExpressions;
 
 namespace FeedMirror
 {
@@ -94,6 +95,94 @@ namespace FeedMirror
                         //throw;
                         /* Move onto next var in loop, don't throw to catch in main, etc. */
                         continue;
+                    }
+                }
+            }
+
+            return pushed;
+        }
+
+        /// <summary>
+        /// W/ package name and version globbing!
+        /// The function that gets all packages using context user passes in,
+        /// and for each package, tries to open up the incomingFeedUrl and get the contents,
+        /// then push the contents to the feed specified.
+        /// If there is an error, it moves on to the next package, the error usually means
+        /// the package doesn't exist so we don't want to push it or stop the program.
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        public async Task<int> MirrorPackages(DateTimeOffset start, DateTimeOffset end, string packagePattern = "*", string versionPattern = "*")
+        {
+            // Get packages
+            HttpCatalogVisitor hcv = new HttpCatalogVisitor(_context);
+            var packages = await hcv.GetPackages(start, end);
+
+            Console.WriteLine($"Found {packages.Count} packages.");
+            Console.WriteLine($"Pushing");
+
+            // Push packages
+            var pushResource = _outputSource.GetResource<PackageUpdateResource>();
+            int pushed = 0;
+
+            /* See if version and name globbing matches. */
+            var newPackPattern = HttpCatalogVisitor.WildcardToRegex(packagePattern);
+            Regex g = new Regex(newPackPattern);
+            var newVerPattern = HttpCatalogVisitor.WildcardToRegex(versionPattern);
+            Regex x = new Regex(newVerPattern);
+
+
+            foreach (var package in packages)
+            {
+                /* Not hard coded: added onto end of context.CatalogCache... */
+                var packagePath = _context.CatalogCacheFolder + "Mirror-" + package.Id + "-" + package.Version.ToNormalizedString() + ".nupkg";
+
+                /* See if version and name globbing matches. */
+                Match idMatch = g.Match(package.Id);
+                Match versionMatch = x.Match(package.Version.ToNormalizedString());
+                bool matchSuccess = idMatch.Success && versionMatch.Success;
+
+                /* Only add anything if the id and version globbing both match. */
+                if (matchSuccess)
+                {
+                    /* Do nothing if it is older than the cursor and exists. */
+                    if ((start > package.CommitTimeStamp || end <= package.CommitTimeStamp) && File.Exists(packagePath))
+                    {
+                        Console.WriteLine($"[CACHE] {packagePath}");
+                    }
+                    else if (start < package.CommitTimeStamp && end >= package.CommitTimeStamp)
+                    {
+                        Console.WriteLine($"[GET] {packagePath}");
+                        HttpClient client = new HttpClient();
+                        var myUrl = _context.IncomingFeedUrl;
+                        myUrl = myUrl.Replace("{id}", package.Id.ToLower());
+                        myUrl = myUrl.Replace("{version}", package.Version.ToNormalizedString().ToLower());
+                        myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
+                        try
+                        {
+                            using (var stream = await client.GetStreamAsync(myUrl))
+                            using (var outputStream = File.Create(packagePath))
+                            {
+                                await stream.CopyToAsync(outputStream);
+                            }
+
+                            await pushResource.Push(packagePath, "", 500, false, GetAPIKey, NullLogger.Instance);
+                            pushed++;
+
+                            // Clean up
+                            File.Delete(packagePath);
+                        }
+                        catch (Exception ex)
+                        {
+                            /* BlueprintCSS 1.0.0 url doesn't work */
+                            //throw new InvalidOperationException($"Failed {myUrl} exception: {ex.ToString()}");
+                            /* don't download package */
+                            Console.WriteLine($"Not downloading {myUrl} because it does not exist: \r\n{ex}.");
+                            //throw;
+                            /* Move onto next var in loop, don't throw to catch in main, etc. */
+                            continue;
+                        }
                     }
                 }
             }

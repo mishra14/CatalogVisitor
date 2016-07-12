@@ -67,11 +67,11 @@ namespace NuGet.CatalogVisitor.Tests
             cursor.CursorPath = "C:\\CatalogCache\\e2eGlobbingCursor.txt";
 
             // Act
-            IReadOnlyList<PackageMetadata> packages = await visitor.GetPackages(cursor.Date, DateTimeOffset.UtcNow, "*.nupkg");
+            IReadOnlyList<PackageMetadata> packages = await visitor.GetPackages(cursor.Date, DateTimeOffset.UtcNow, "Altairis*");
             cursor.Save();
 
             // Assert
-            Assert.Equal(16, packages.Count);
+            Assert.Equal(3, packages.Count);
         }
 
         [Fact]

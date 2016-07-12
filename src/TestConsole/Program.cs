@@ -8,35 +8,14 @@ namespace TestConsole
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            Run(args).Wait();
+            Run().Wait();
         }
 
-        private static async Task Run(string[] args)
+        private static async Task Run()
         {
-            var feed = args[0];
-            var output = args[1];
-
-            CatalogVisitorContext context = new CatalogVisitorContext();
-            context.CatalogCacheFolder = "C:\\CatalogCache\\MirrorPackages\\";
-            context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
-            string mySource = "https://www.myget.org/F/theotherfeed/api/v3/index.json";
-            //context.IncomingFeedUrl = feed;
-            //string mySource = output;
-            context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
-            FileCursor cursor = new FileCursor();
-            cursor.Date = new DateTimeOffset(2016, 7, 5, 10, 5, 0, new TimeSpan(-7, 0, 0));
-            cursor.CursorPath = "C:\\CatalogCache\\mainMirrorCursor.txt";
-
-            PackageMirror myPM = new PackageMirror(context, mySource);
-
-            var pushed = await myPM.MirrorPackages(cursor.Date, DateTimeOffset.UtcNow);
-
-            cursor.Save();
-
-
-            /*
+            //string[] args
             CatalogVisitorContext context = new CatalogVisitorContext();
             context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
             context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
@@ -44,6 +23,18 @@ namespace TestConsole
             //FileCursor cursor = FileCursor.Load("C:\\CatalogCache\\httpPackageDownloaderCursor.txt");
             HttpCatalogVisitor visitor = new HttpCatalogVisitor(context);
             HttpPackageDownloader HPD = new HttpPackageDownloader(context);
+
+            /* Gets latest version for each ID from date in cursor to now. */
+            FileCursor cursor = new FileCursor();
+            cursor.Date = new DateTimeOffset(2016, 7, 11, 1, 0, 0, new TimeSpan(0, 0, 0)); // from today, last half hour, to now
+            cursor.CursorPath = "C:\\CatalogCache\\mainCursor.txt";
+            IReadOnlyList<PackageMetadata> packages = await visitor.GetPackages(cursor.Date, DateTimeOffset.UtcNow, "illecta*");
+            foreach (PackageMetadata package in packages)
+            {
+                Console.WriteLine("Package - ID: {0}, Version: {1}", package.Id, package.Version);
+            }
+            cursor.Save();
+
 
             /* Gets latest version for each ID from date in cursor to now.
             FileCursor cursor = new FileCursor();

@@ -21,6 +21,8 @@ namespace FeedMirror
             {
                 var feed = args[0];
                 var output = args[1];
+                var fileName = args[2];
+                var version = args[3];
 
                 CatalogVisitorContext context = new CatalogVisitorContext();
                 context.CatalogCacheFolder = "C:\\CatalogCache\\MirrorPackages\\";
@@ -33,7 +35,7 @@ namespace FeedMirror
                 context.IncomingFeedUrl = feed;
                 context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
                 FileCursor cursor = new FileCursor();
-                cursor.Date = new DateTimeOffset(2016, 7, 5, 10, 5, 0, new TimeSpan(-7, 0, 0));
+                cursor.Date = new DateTimeOffset(2016, 7, 6, 9, 53, 30, new TimeSpan(-7, 0, 0));
                 cursor.CursorPath = "C:\\CatalogCache\\mainMirrorCursor.txt";
                 Console.WriteLine($"Mirroring packages from {context.FeedIndexJsonUrl} between {cursor.Date.ToLocalTime()} and {DateTimeOffset.UtcNow.ToLocalTime()}.");
 

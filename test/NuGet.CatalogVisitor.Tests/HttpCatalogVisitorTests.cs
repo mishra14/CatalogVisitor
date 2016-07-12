@@ -62,10 +62,27 @@ namespace NuGet.CatalogVisitor.Tests
             HttpCatalogVisitor hcv = new HttpCatalogVisitor(_context);
 
             // Act
-            var packages = await hcv.GetPackages(DateTimeOffset.MinValue, DateTimeOffset.UtcNow, "*.nupkg");
+            var packages = await hcv.GetPackages(DateTimeOffset.MinValue, DateTimeOffset.UtcNow, "*.json");
 
             // Assert
             Assert.Equal(16, packages.Count);
+        }
+
+        [Fact]
+        public void WildCardToRegexTest()
+        {
+            // Arrange
+            SetUpHttp();
+            HttpCatalogVisitor hcv = new HttpCatalogVisitor(_context);
+
+            // Act
+            string regex = HttpCatalogVisitor.WildcardToRegex("foo*.xls?");
+            string expected = "^foo.*";
+            expected = expected + "\\";
+            expected = expected + ".xls.$";
+
+            // Assert
+            Assert.Equal(expected, regex);
         }
 
         [Fact]
