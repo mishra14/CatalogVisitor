@@ -15,6 +15,7 @@ namespace FeedMirror
         /* Default feed. */
         private CatalogVisitorContext _context;
         private SourceRepository _outputSource;
+        private string _sourceStr;
 
         /// <summary>
         /// User passes in their feed with catalogContext.IncomingFeedUrl,
@@ -28,6 +29,7 @@ namespace FeedMirror
         public PackageMirror(CatalogVisitorContext catalogContext, string outputSource)
         {
             _context = catalogContext;
+            _sourceStr = outputSource;
             _outputSource = Repository.Factory.GetCoreV3(outputSource);
         }
 
@@ -67,34 +69,41 @@ namespace FeedMirror
                 else if (start < package.CommitTimeStamp && end >= package.CommitTimeStamp)
                 {
                     Console.WriteLine($"[GET] {packagePath}");
-                    HttpClient client = new HttpClient();
-                    var myUrl = _context.IncomingFeedUrl;
-                    myUrl = myUrl.Replace("{id}", package.Id.ToLower());
-                    myUrl = myUrl.Replace("{version}", package.Version.ToNormalizedString().ToLower());
-                    myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
-                    try
+                    if (_sourceStr.StartsWith("http"))
                     {
-                        using (var stream = await client.GetStreamAsync(myUrl))
-                        using (var outputStream = File.Create(packagePath))
+                        try
                         {
-                            await stream.CopyToAsync(outputStream);
+                            GetUrlPush(package, packagePath, pushResource);
+                            pushed++;
                         }
-
-                        await pushResource.Push(packagePath, "", 500, false, GetAPIKey, NullLogger.Instance);
-                        pushed++;
-
-                        // Clean up
-                        File.Delete(packagePath);
+                        catch (Exception ex)
+                        {
+                            /* BlueprintCSS 1.0.0 url doesn't work */
+                            //throw new InvalidOperationException($"Failed {myUrl} exception: {ex.ToString()}");
+                            /* don't download package */
+                            Console.WriteLine($"Not downloading url because it does not exist: \r\n{ex}.");
+                            //throw;
+                            /* Move onto next var in loop, don't throw to catch in main, etc. */
+                            continue;
+                        }
                     }
-                    catch (Exception ex)
+                    else if (_sourceStr.StartsWith("C:"))
                     {
-                        /* BlueprintCSS 1.0.0 url doesn't work */
-                        //throw new InvalidOperationException($"Failed {myUrl} exception: {ex.ToString()}");
-                        /* don't download package */
-                        Console.WriteLine($"Not downloading {myUrl} because it does not exist: \r\n{ex}.");
-                        //throw;
-                        /* Move onto next var in loop, don't throw to catch in main, etc. */
-                        continue;
+                        try
+                        {
+                            GetDirPush(package, packagePath, pushResource);
+                            pushed++;
+                        }
+                        catch (Exception ex)
+                        {
+                            /* BlueprintCSS 1.0.0 url doesn't work */
+                            //throw new InvalidOperationException($"Failed {myUrl} exception: {ex.ToString()}");
+                            /* don't download package */
+                            Console.WriteLine($"Not downloading dir because it does not exist: \r\n{ex}.");
+                            //throw;
+                            /* Move onto next var in loop, don't throw to catch in main, etc. */
+                            continue;
+                        }
                     }
                 }
             }
@@ -154,40 +163,89 @@ namespace FeedMirror
                     else if (start < package.CommitTimeStamp && end >= package.CommitTimeStamp)
                     {
                         Console.WriteLine($"[GET] {packagePath}");
-                        HttpClient client = new HttpClient();
-                        var myUrl = _context.IncomingFeedUrl;
-                        myUrl = myUrl.Replace("{id}", package.Id.ToLower());
-                        myUrl = myUrl.Replace("{version}", package.Version.ToNormalizedString().ToLower());
-                        myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
-                        try
+                        if (_outputSource.ToString().StartsWith("http"))
                         {
-                            using (var stream = await client.GetStreamAsync(myUrl))
-                            using (var outputStream = File.Create(packagePath))
+                            try
                             {
-                                await stream.CopyToAsync(outputStream);
+                                GetUrlPush(package, packagePath, pushResource);
+                                pushed++;
                             }
-
-                            await pushResource.Push(packagePath, "", 500, false, GetAPIKey, NullLogger.Instance);
-                            pushed++;
-
-                            // Clean up
-                            File.Delete(packagePath);
+                            catch (Exception ex)
+                            {
+                                /* BlueprintCSS 1.0.0 url doesn't work */
+                                //throw new InvalidOperationException($"Failed {myUrl} exception: {ex.ToString()}");
+                                /* don't download package */
+                                Console.WriteLine($"Not downloading url because it does not exist: \r\n{ex}.");
+                                //throw;
+                                /* Move onto next var in loop, don't throw to catch in main, etc. */
+                                continue;
+                            }
                         }
-                        catch (Exception ex)
+                        else if (_outputSource.ToString().StartsWith("C:"))
                         {
-                            /* BlueprintCSS 1.0.0 url doesn't work */
-                            //throw new InvalidOperationException($"Failed {myUrl} exception: {ex.ToString()}");
-                            /* don't download package */
-                            Console.WriteLine($"Not downloading {myUrl} because it does not exist: \r\n{ex}.");
-                            //throw;
-                            /* Move onto next var in loop, don't throw to catch in main, etc. */
-                            continue;
+                            try
+                            {
+                                GetDirPush(package, packagePath, pushResource);
+                                pushed++;
+                            }
+                            catch (Exception ex)
+                            {
+                                /* BlueprintCSS 1.0.0 url doesn't work */
+                                //throw new InvalidOperationException($"Failed {myUrl} exception: {ex.ToString()}");
+                                /* don't download package */
+                                Console.WriteLine($"Not downloading dir because it does not exist: \r\n{ex}.");
+                                //throw;
+                                /* Move onto next var in loop, don't throw to catch in main, etc. */
+                                continue;
+                            }
                         }
                     }
                 }
             }
 
             return pushed;
+        }
+
+        private async void GetUrlPush(PackageMetadata package, string packagePath, PackageUpdateResource pushResource)
+        {
+            HttpClient client = new HttpClient();
+            var myUrl = _context.IncomingFeedUrl;
+            myUrl = myUrl.Replace("{id}", package.Id.ToLower());
+            myUrl = myUrl.Replace("{version}", package.Version.ToNormalizedString().ToLower());
+            myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
+            using (var stream = await client.GetStreamAsync(myUrl))
+            using (var outputStream = File.Create(packagePath))
+            {
+                await stream.CopyToAsync(outputStream);
+            }
+
+            await pushResource.Push(packagePath, "", 500, false, GetAPIKey, NullLogger.Instance);
+
+            // Clean up
+            File.Delete(packagePath);
+        }
+
+        private async void GetDirPush(PackageMetadata package, string packagePath, PackageUpdateResource pushResource)
+        {
+            // Create from url
+            HttpClient client = new HttpClient();
+            var myUrl = _context.IncomingFeedUrl;
+            myUrl = myUrl.Replace("{id}", package.Id.ToLower());
+            myUrl = myUrl.Replace("{version}", package.Version.ToNormalizedString().ToLower());
+            myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
+
+            // Create to file path
+            var newFilePath = _context.IncomingFeedUrl + "Mirror-" + package.Id + "-" + package.Version.ToNormalizedString() + ".nupkg";
+
+            // Copy from from url to to file path
+            using (var stream = await client.GetStreamAsync(myUrl))
+            using (var outputStream = File.Create(newFilePath))
+            {
+                await stream.CopyToAsync(outputStream);
+            }
+
+            // Clean up
+            File.Delete(packagePath);
         }
 
         /// <summary>

@@ -19,32 +19,61 @@ namespace FeedMirror
         {
             try
             {
-                var feed = args[0];
-                var output = args[1];
-                var fileName = args[2];
-                var version = args[3];
-
-                CatalogVisitorContext context = new CatalogVisitorContext();
-                context.CatalogCacheFolder = "C:\\CatalogCache\\MirrorPackages\\";
-
                 /* Hard-coded examples in case you want to run in debug/not exe or command line. */
-                //context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
-                //string mySource = "https://www.myget.org/F/theotherfeed/api/v3/index.json";
+                var feed = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
+                var output = "https://www.myget.org/F/theotherfeed/api/v3/index.json";
+                var fileName = "*";
+                var version = "*";
+                var givenCursor = "C:\\CatalogCache\\mainMirrorCursor.txt";
 
-                string mySource = output;
-                context.IncomingFeedUrl = feed;
-                context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
-                FileCursor cursor = new FileCursor();
-                cursor.Date = new DateTimeOffset(2016, 7, 6, 9, 53, 30, new TimeSpan(-7, 0, 0));
-                cursor.CursorPath = "C:\\CatalogCache\\mainMirrorCursor.txt";
-                Console.WriteLine($"Mirroring packages from {context.FeedIndexJsonUrl} between {cursor.Date.ToLocalTime()} and {DateTimeOffset.UtcNow.ToLocalTime()}.");
+                if (args.Length == 2)
+                {
+                    feed = args[0];
+                    output = args[1];
+                }
+                if (args.Length <= 3 && args.Length >= 2)
+                {
+                    fileName = args[2];
+                }
+                if (args.Length <= 4 && args.Length >= 2)
+                {
+                    version = args[3];
+                }
+                if (args.Length <= 5 && args.Length >= 2)
+                {
+                    givenCursor = args[4];
+                }
+                if (args.Length == 0)
+                {
 
-                PackageMirror myPM = new PackageMirror(context, mySource);
+                    CatalogVisitorContext context = new CatalogVisitorContext();
+                    context.CatalogCacheFolder = "C:\\CatalogCache\\MirrorPackages\\";
+                    FileCursor cursor = new FileCursor();
 
-                var pushed = await myPM.MirrorPackages(cursor.Date, DateTimeOffset.UtcNow);
+                    /* Set to original or read in values. */
+                    context.IncomingFeedUrl = feed;
+                    string mySource = output;
+                    var verGlobPattern = fileName;
+                    var idGlobPattern = version;
+                    cursor.CursorPath = givenCursor;
 
-                cursor.Save();
-                Console.WriteLine($"{pushed} pushed.");
+                    /* cursor.Date now has correct date */
+                    FileCursor.Load(cursor.CursorPath);
+                    context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
+                    //cursor.Date = new DateTimeOffset(2016, 7, 6, 9, 53, 30, new TimeSpan(-7, 0, 0));
+                    Console.WriteLine($"Mirroring packages from {context.FeedIndexJsonUrl} between {cursor.Date.ToLocalTime()} and {DateTimeOffset.UtcNow.ToLocalTime()}.");
+
+                    PackageMirror myPM = new PackageMirror(context, mySource);
+
+                    var pushed = await myPM.MirrorPackages(cursor.Date, DateTimeOffset.UtcNow, fileName, version);
+
+                    cursor.Save();
+                    Console.WriteLine($"{pushed} pushed.");
+                }
+                else
+                {
+                    Console.WriteLine("Incorrect # of args");
+                }
             }
             catch (Exception ex)
             {

@@ -68,5 +68,24 @@ namespace NuGet.CatalogVisitor.Tests
             // Assert
             Assert.Equal(16, pushed);
         }
+
+        [Fact]
+        public async Task MirrorPackagesGlobbingTest()
+        {
+            // Arrange
+            SetUpHttp();
+
+            _context.CatalogCacheFolder = "C:\\CatalogCache\\MirrorPackages\\";
+            _context.IncomingFeedUrl = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
+            string mySource = "https://www.myget.org/F/theotherfeed/api/v3/index.json";
+
+            PackageMirror myPM = new PackageMirror(_context, mySource);
+
+            // Act
+            var pushed = await myPM.MirrorPackages(DateTimeOffset.MinValue, DateTimeOffset.UtcNow, "Altairis*", "2.*");
+
+            // Assert
+            Assert.Equal(4, pushed);
+        }
     }
 }
