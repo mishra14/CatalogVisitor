@@ -19,13 +19,14 @@ namespace FeedMirror
         {
             try
             {
-                /* Hard-coded examples in case you want to run in debug/not exe or command line. */
+                /* Hard-coded examples for args in case none were entered or you want to run in debug/not exe or command line. */
                 var feed = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
                 var output = "https://www.myget.org/F/theotherfeed/api/v3/index.json";
                 var fileName = "*";
                 var version = "*";
                 var givenCursor = "C:\\CatalogCache\\mainMirrorCursor.txt";
 
+                /* Reading in the args based on different lengths. */
                 if (args.Length == 2)
                 {
                     feed = args[0];
@@ -43,6 +44,8 @@ namespace FeedMirror
                 {
                     givenCursor = args[4];
                 }
+
+                /* If no args, use hardcoded values. */
                 if (args.Length == 0)
                 {
 
@@ -65,6 +68,7 @@ namespace FeedMirror
 
                     PackageMirror myPM = new PackageMirror(context, mySource);
 
+                    /* Use version with id and version globbing. */
                     var pushed = await myPM.MirrorPackages(cursor.Date, DateTimeOffset.UtcNow, fileName, version);
 
                     cursor.Save();

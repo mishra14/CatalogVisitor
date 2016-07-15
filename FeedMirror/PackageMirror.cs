@@ -69,6 +69,7 @@ namespace FeedMirror
                 else if (start < package.CommitTimeStamp && end >= package.CommitTimeStamp)
                 {
                     Console.WriteLine($"[GET] {packagePath}");
+                    /* If to feed is a url. */
                     if (_sourceStr.StartsWith("http"))
                     {
                         try
@@ -86,7 +87,7 @@ namespace FeedMirror
                             /* Move onto next var in loop, don't throw to catch in main, etc. */
                             continue;
                         }
-                    }
+                    } /* If to feed is a file system. */
                     else if (_sourceStr.StartsWith("C:"))
                     {
                         try
@@ -206,25 +207,42 @@ namespace FeedMirror
             return pushed;
         }
 
+        /// <summary>
+        /// Pushes one package to a myget feed url.
+        /// </summary>
+        /// <param name="package"></param>
+        /// <param name="packagePath"></param>
+        /// <param name="pushResource"></param>
         private async void GetUrlPush(PackageMetadata package, string packagePath, PackageUpdateResource pushResource)
         {
             HttpClient client = new HttpClient();
             var myUrl = _context.IncomingFeedUrl;
+
+            /* Create the url you will use. */
             myUrl = myUrl.Replace("{id}", package.Id.ToLower());
             myUrl = myUrl.Replace("{version}", package.Version.ToNormalizedString().ToLower());
             myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
+
+            /* Read from url, push that into packagePath file. */
             using (var stream = await client.GetStreamAsync(myUrl))
             using (var outputStream = File.Create(packagePath))
             {
                 await stream.CopyToAsync(outputStream);
             }
 
+            /* Push packagePath file contents onto myget feed url (pushResource). */
             await pushResource.Push(packagePath, "", 500, false, GetAPIKey, NullLogger.Instance);
 
-            // Clean up
+            /* Clean up */
             File.Delete(packagePath);
         }
 
+        /// <summary>
+        /// Pushes one package to new path in file path user passed in.
+        /// </summary>
+        /// <param name="package"></param>
+        /// <param name="packagePath"></param>
+        /// <param name="pushResource"></param>
         private async void GetDirPush(PackageMetadata package, string packagePath, PackageUpdateResource pushResource)
         {
             // Create from url
