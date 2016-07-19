@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Diagnostics;
-using Microsoft.Extensions.FileSystemGlobbing;
-using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using System.Text.RegularExpressions;
 
 namespace NuGet.CatalogVisitor
