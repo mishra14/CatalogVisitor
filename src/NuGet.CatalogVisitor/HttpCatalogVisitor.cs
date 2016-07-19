@@ -29,6 +29,75 @@ namespace NuGet.CatalogVisitor
             _client = new HttpClient(handler);
         }
 
+        public async Task<string> GetCatalogUrl()
+        {
+            try
+            {
+                /* Create new HttpCatalogVisitor object to return. */
+                List<PackageMetadata> newList = new List<PackageMetadata>();
+
+                string json = await GetCatalogIndexUri(new Uri(_context.FeedIndexJsonUrl));
+
+                /* Parse json string and find second level - catalog - from index page. */
+                JObject root = await GetJson(_context.FeedIndexJsonUrl);
+                JArray resources = (JArray)root["resources"];
+                string retStr = null;
+                foreach (var resource in resources)
+                {
+                    /* Found catalog. */
+                    if ((string)resource["@type"] == "Catalog/3.0.0")
+                    {
+                        retStr = (string)resource["@id"];
+                        break;
+                    }
+                }
+                return retStr;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                throw;
+            }
+        }
+
+        public async Task<string> GetFlatContainerUrl()
+        {
+            try
+            {
+                /* Create new HttpCatalogVisitor object to return. */
+                List<PackageMetadata> newList = new List<PackageMetadata>();
+
+                string json = await GetCatalogIndexUri(new Uri(_context.FeedIndexJsonUrl));
+
+                /* Parse json string and find second level - catalog - from index page. */
+                JObject root = await GetJson(_context.FeedIndexJsonUrl);
+                JArray resources = (JArray)root["resources"];
+                string retStr = null;
+                foreach (var resource in resources)
+                {
+                    /* Found flat container. */
+                    if ((string)resource["@type"] == "PackageBaseAddress/3.0.0")
+                    {
+                        retStr = (string)resource["comment"];
+                        break;
+                    }
+                }
+                var retArr = retStr.Split();
+                /* Last in the array is the url. */
+                var retUrl = retArr.Last();
+                retUrl = retUrl.Replace("{id-lower}", "{id}");
+                retUrl = retUrl.Replace("{version-lower}", "{version}");
+                retUrl = retUrl.Replace("{commitTimeStamp-lower}", "{commitTimeStamp}");
+
+                return retUrl;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                throw;
+            }
+        }
+
         /// <summary>
         /// Gets all packages' latest edit of each version.
         /// </summary>
@@ -80,14 +149,14 @@ namespace NuGet.CatalogVisitor
             try
             {
                 /* Create new HttpCatalogVisitor object to return. */
-            List<PackageMetadata> newList = new List<PackageMetadata>();
+                List<PackageMetadata> newList = new List<PackageMetadata>();
 
                 string json = await GetCatalogIndexUri(new Uri(_context.FeedIndexJsonUrl));
 
                 /* Parse json string and find second level - catalog - from index page. */
                 JObject root = await GetJson(_context.FeedIndexJsonUrl);
-                JArray resources = (JArray)root["resources"];
-                string catalogUri = (string)resources.Last["@id"];
+                //JArray resources = (JArray)root["resources"];
+                string catalogUri = await GetCatalogUrl();
 
                 /* Get json from catalog uri found from previous index.json, write to file. */
                 root = await GetJson(catalogUri);
@@ -211,8 +280,8 @@ namespace NuGet.CatalogVisitor
 
                 /* Parse json string and find second level - catalog - from index page. */
                 JObject root = await GetJson(_context.FeedIndexJsonUrl);
-                JArray resources = (JArray)root["resources"];
-                string catalogUri = (string)resources.Last["@id"];
+                //JArray resources = (JArray)root["resources"];
+                string catalogUri = await GetCatalogUrl();
 
                 /* Get json from catalog uri found from previous index.json, write to file. */
                 root = await GetJson(catalogUri);
@@ -369,8 +438,8 @@ namespace NuGet.CatalogVisitor
 
                 /* Parse json string and find second level - catalog - from index page. */
                 JObject root = await GetJson(_context.FeedIndexJsonUrl);
-                JArray resources = (JArray)root["resources"];
-                string catalogUri = (string)resources.Last["@id"];
+                //JArray resources = (JArray)root["resources"];
+                string catalogUri = await GetCatalogUrl();
 
                 /* Get json from catalog uri found from previous index.json, write to file. */
                 root = await GetJson(catalogUri);

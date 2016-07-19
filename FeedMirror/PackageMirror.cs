@@ -164,7 +164,7 @@ namespace FeedMirror
                     else if (start < package.CommitTimeStamp && end >= package.CommitTimeStamp)
                     {
                         Console.WriteLine($"[GET] {packagePath}");
-                        if (_outputSource.ToString().StartsWith("http"))
+                        if (_sourceStr.StartsWith("http"))
                         {
                             try
                             {
@@ -182,7 +182,7 @@ namespace FeedMirror
                                 continue;
                             }
                         }
-                        else if (_outputSource.ToString().StartsWith("C:"))
+                        else if (_sourceStr.StartsWith("C:"))
                         {
                             try
                             {
@@ -215,26 +215,33 @@ namespace FeedMirror
         /// <param name="pushResource"></param>
         private async void GetUrlPush(PackageMetadata package, string packagePath, PackageUpdateResource pushResource)
         {
-            HttpClient client = new HttpClient();
-            var myUrl = _context.IncomingFeedUrl;
-
-            /* Create the url you will use. */
-            myUrl = myUrl.Replace("{id}", package.Id.ToLower());
-            myUrl = myUrl.Replace("{version}", package.Version.ToNormalizedString().ToLower());
-            myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
-
-            /* Read from url, push that into packagePath file. */
-            using (var stream = await client.GetStreamAsync(myUrl))
-            using (var outputStream = File.Create(packagePath))
+            try
             {
-                await stream.CopyToAsync(outputStream);
+                HttpClient client = new HttpClient();
+                var myUrl = _context.IncomingFeedUrl;
+
+                /* Create the url you will use. */
+                myUrl = myUrl.Replace("{id}", package.Id.ToLower());
+                myUrl = myUrl.Replace("{version}", package.Version.ToNormalizedString().ToLower());
+                myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
+
+                /* Read from url, push that into packagePath file. */
+                using (var stream = await client.GetStreamAsync(myUrl))
+                using (var outputStream = File.Create(packagePath))
+                {
+                    await stream.CopyToAsync(outputStream);
+                }
+
+                /* Push packagePath file contents onto myget feed url (pushResource). */
+                await pushResource.Push(packagePath, "", 500, false, GetAPIKey, NullLogger.Instance);
+
+                /* Clean up */
+                File.Delete(packagePath);
             }
-
-            /* Push packagePath file contents onto myget feed url (pushResource). */
-            await pushResource.Push(packagePath, "", 500, false, GetAPIKey, NullLogger.Instance);
-
-            /* Clean up */
-            File.Delete(packagePath);
+            catch (Exception ex)
+            {
+                // Do nothing.
+            }
         }
 
         /// <summary>
@@ -245,25 +252,32 @@ namespace FeedMirror
         /// <param name="pushResource"></param>
         private async void GetDirPush(PackageMetadata package, string packagePath, PackageUpdateResource pushResource)
         {
-            // Create from url
-            HttpClient client = new HttpClient();
-            var myUrl = _context.IncomingFeedUrl;
-            myUrl = myUrl.Replace("{id}", package.Id.ToLower());
-            myUrl = myUrl.Replace("{version}", package.Version.ToNormalizedString().ToLower());
-            myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
-
-            // Create to file path
-            var newFilePath = _context.IncomingFeedUrl + "Mirror-" + package.Id + "-" + package.Version.ToNormalizedString() + ".nupkg";
-
-            // Copy from from url to to file path
-            using (var stream = await client.GetStreamAsync(myUrl))
-            using (var outputStream = File.Create(newFilePath))
+            try
             {
-                await stream.CopyToAsync(outputStream);
-            }
+                // Create from url
+                HttpClient client = new HttpClient();
+                var myUrl = _context.IncomingFeedUrl;
+                myUrl = myUrl.Replace("{id}", package.Id.ToLower());
+                myUrl = myUrl.Replace("{version}", package.Version.ToNormalizedString().ToLower());
+                myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
 
-            // Clean up
-            File.Delete(packagePath);
+                // Create to file path
+                var newFilePath = _context.IncomingFeedUrl + "Mirror-" + package.Id + "-" + package.Version.ToNormalizedString() + ".nupkg";
+
+                // Copy from from url to to file path
+                using (var stream = await client.GetStreamAsync(myUrl))
+                using (var outputStream = File.Create(newFilePath))
+                {
+                    await stream.CopyToAsync(outputStream);
+                }
+
+                // Clean up
+                File.Delete(packagePath);
+            }
+            catch (Exception ex)
+            {
+                // Do nothing.
+            }
         }
 
         /// <summary>
@@ -274,6 +288,11 @@ namespace FeedMirror
         private static string GetAPIKey(string source)
         {
             return "5d5886c5-e666-4d71-aaef-0af559d3d45a";
+        }
+
+        public static string GetMyGetString()
+        {
+            return "https://www.myget.org/F/theotherfeed/api/v3/index.json";
         }
     }
 }

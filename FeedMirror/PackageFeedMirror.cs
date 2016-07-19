@@ -27,6 +27,8 @@ namespace FeedMirror
                     Console.WriteLine("You can also use globbing to specify a group of ids (ex: Altairis*)");
                     Console.WriteLine("as well as to specify a group of versions (ex: 2.0.*).");
                     Console.WriteLine("You can also specify a path to your own pre-existing cursor file and time (ex: C:\\myCursor.txt)");
+                    Console.WriteLine("(make sure this file is readable by our program,");
+                    Console.WriteLine(" ex: Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + \"\\mainMirrorCursor.txt\")");
                     Console.WriteLine("as well as one that does not exist for which we will use Min Time.");
                     Console.WriteLine("FeedMirror.exe (0) from feed (1) to feed (2) id globbing (3) version globbing (4) cursor file.");
                     Console.WriteLine("Parameters 2, 3, and 4 are optional, but you cannot have 3 without 4, etc.");
@@ -37,12 +39,23 @@ namespace FeedMirror
                 }
                 else
                 {
+                    CatalogVisitorContext context = new CatalogVisitorContext();
+                    context.CatalogCacheFolder = "C:\\MirrorPackages\\"; // Randomly created folder for mirrored packages.
+                    context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json"; // The v3 index.json url.
+                    if (!Directory.Exists(context.CatalogCacheFolder))
+                    {
+                        DirectoryInfo di = Directory.CreateDirectory(context.CatalogCacheFolder);
+                    }
+                    FileCursor cursor = new FileCursor();
+                    HttpCatalogVisitor hcv = new HttpCatalogVisitor(context);
+
                     /* Hard-coded examples for args in case none were entered or you want to run in debug/not exe or command line. */
-                    var feed = "https://api.nuget.org/v3-flatcontainer/{id}/{version}/{id}.{version}.nupkg";
-                    var output = "https://www.myget.org/F/theotherfeed/api/v3/index.json";
+                    var feed = await hcv.GetFlatContainerUrl();
+                    var output = PackageMirror.GetMyGetString(); // My MyGet Feed.
                     var fileName = "*";
                     var version = "*";
-                    var givenCursor = "C:\\mainMirrorCursor.txt";
+                    var givenCursor = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "\\mainMirrorCursor.txt";
+                    //var givenCursor = "C:\\mainMirrorCursor.txt"; // Randomly created cursor file.
 
                     /* Reading in the args based on different lengths. */
                     if (args.Length >= 2)
@@ -63,24 +76,16 @@ namespace FeedMirror
                         givenCursor = args[4];
                     }
 
-                    CatalogVisitorContext context = new CatalogVisitorContext();
-                    context.CatalogCacheFolder = "C:\\MirrorPackages\\";
-                    if (!Directory.Exists(context.CatalogCacheFolder))
-                    {
-                        DirectoryInfo di = Directory.CreateDirectory(context.CatalogCacheFolder);
-                    }
-                    FileCursor cursor = new FileCursor();
-
                     /* Set to original or read in values. */
                     context.IncomingFeedUrl = feed;
                     string mySource = output;
                     var verGlobPattern = fileName;
                     var idGlobPattern = version;
                     cursor.CursorPath = givenCursor;
+                    cursor.Date = new DateTimeOffset(2016, 7, 19, 0, 0, 0, new TimeSpan(-7, 0, 0));
 
-                    /* cursor.Date now has correct date */
+                    /* cursor.Date now has correct date (replaces hardcoded w user date if applicable) */
                     FileCursor.Load(cursor.CursorPath);
-                    context.FeedIndexJsonUrl = "https://api.nuget.org/v3/index.json";
                     //cursor.Date = new DateTimeOffset(2016, 7, 6, 9, 53, 30, new TimeSpan(-7, 0, 0));
                     Console.WriteLine($"Mirroring packages from {context.FeedIndexJsonUrl} between {cursor.Date.ToLocalTime()} and {DateTimeOffset.UtcNow.ToLocalTime()}.");
 
