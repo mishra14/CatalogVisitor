@@ -98,6 +98,46 @@ namespace NuGet.CatalogVisitor
             }
         }
 
+        public async Task<string> GetNewFlatContainerUrl(string packageUrl)
+        {
+            try
+            {
+                /* Create new HttpCatalogVisitor object to return. */
+                List<PackageMetadata> newList = new List<PackageMetadata>();
+
+                string json = await GetCatalogIndexUri(new Uri(packageUrl));
+
+                /* Parse json string and find second level - catalog - from index page. */
+                JObject root = await GetJson(packageUrl);
+                JArray resources = (JArray)root["resources"];
+                string retStr = null;
+                foreach (var resource in resources)
+                {
+                    /* Found flat container. */
+                    if ((string)resource["@type"] == "PackageBaseAddress/3.0.0")
+                    {
+                        retStr = (string)resource["@id"];
+                        break;
+                    }
+                }
+
+                return retStr;
+                //var retArr = retStr.Split();
+                /* Last in the array is the url. */
+                //var retUrl = retArr.Last();
+                //retUrl = retUrl.Replace("{id-lower}", "{id}");
+                //retUrl = retUrl.Replace("{version-lower}", "{version}");
+                //retUrl = retUrl.Replace("{commitTimeStamp-lower}", "{commitTimeStamp}");
+
+                //return retUrl;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                throw;
+            }
+        }
+
         /// <summary>
         /// Gets all packages' latest edit of each version.
         /// </summary>

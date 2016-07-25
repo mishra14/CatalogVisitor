@@ -22,7 +22,7 @@ namespace FeedMirror
             {
                 if (args.Length == 1 && (args[0] == "/?" || args[0] == "--help"))
                 {
-                    Console.WriteLine("FeedMirror mirrors data from a given feed ({id} where id wanted, etc.)");
+                    Console.WriteLine("FeedMirror mirrors data from a given feed url (ex: https://api.nuget.org/v3/index.json)");
                     Console.WriteLine("to a given url (myget feed or normal url) or hard drive (C:\\ format).");
                     Console.WriteLine("You can also use globbing to specify a group of ids (ex: Altairis*)");
                     Console.WriteLine("as well as to specify a group of versions (ex: 2.0.*).");
@@ -50,7 +50,8 @@ namespace FeedMirror
                     HttpCatalogVisitor hcv = new HttpCatalogVisitor(context);
 
                     /* Hard-coded examples for args in case none were entered or you want to run in debug/not exe or command line. */
-                    var feed = await hcv.GetFlatContainerUrl();
+                    //var feed = await hcv.GetFlatContainerUrl();
+                    var feed = "https://api.nuget.org/v3/index.json";
                     var output = PackageMirror.GetMyGetString(); // My MyGet Feed.
                     var fileName = "*";
                     var version = "*";
@@ -77,12 +78,14 @@ namespace FeedMirror
                     }
 
                     /* Set to original or read in values. */
-                    context.IncomingFeedUrl = feed;
+                    var urlBeg = await hcv.GetNewFlatContainerUrl(feed);
+                    var urlComplete = urlBeg + "{id}/{version}/{id}.{version}.nupkg";
+                    context.IncomingFeedUrl = urlComplete;
                     string mySource = output;
                     var verGlobPattern = fileName;
                     var idGlobPattern = version;
                     cursor.CursorPath = givenCursor;
-                    cursor.Date = new DateTimeOffset(2016, 7, 19, 0, 0, 0, new TimeSpan(-7, 0, 0));
+                    cursor.Date = new DateTimeOffset(2016, 7, 21, 0, 0, 0, new TimeSpan(-7, 0, 0));
 
                     /* cursor.Date now has correct date (replaces hardcoded w user date if applicable) */
                     FileCursor.Load(cursor.CursorPath);
