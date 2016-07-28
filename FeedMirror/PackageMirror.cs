@@ -7,6 +7,7 @@ using System.IO;
 using System.Net.Http;
 using NuGet.CatalogVisitor;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
 
 namespace FeedMirror
 {
@@ -127,7 +128,8 @@ namespace FeedMirror
         {
             // Get packages
             HttpCatalogVisitor hcv = new HttpCatalogVisitor(_context);
-            var packages = await hcv.GetPackages(start, end);
+            //var packages = await hcv.GetPackages(start, end);
+            var packages = await hcv.GetPackages(start, end, packagePattern, versionPattern);
 
             Console.WriteLine($"Found {packages.Count} packages.");
             Console.WriteLine($"Pushing");
@@ -137,33 +139,39 @@ namespace FeedMirror
             int pushed = 0;
 
             /* See if version and name globbing matches. */
-            var newPackPattern = HttpCatalogVisitor.WildcardToRegex(packagePattern);
-            Regex g = new Regex(newPackPattern);
-            var newVerPattern = HttpCatalogVisitor.WildcardToRegex(versionPattern);
-            Regex x = new Regex(newVerPattern);
+            //var newPackPattern = HttpCatalogVisitor.WildcardToRegex(packagePattern);
+            //Regex g = new Regex(newPackPattern);
+            //var newVerPattern = HttpCatalogVisitor.WildcardToRegex(versionPattern);
+            //Regex x = new Regex(newVerPattern);
+
+            List<string> cached = new List<string>();
+            List<string> added = new List<string>();
 
 
             foreach (var package in packages)
             {
                 /* Not hard coded: added onto end of context.CatalogCache... */
-                var packagePath = _context.CatalogCacheFolder + "Mirror-" + package.Id + "-" + package.Version.ToNormalizedString() + ".nupkg";
+                var packageEnding = "Mirror-" + package.Id + "-" + package.Version.ToNormalizedString() + ".nupkg";
+                var packagePath = _context.CatalogCacheFolder + packageEnding;
 
                 /* See if version and name globbing matches. */
-                Match idMatch = g.Match(package.Id);
-                Match versionMatch = x.Match(package.Version.ToNormalizedString());
-                bool matchSuccess = idMatch.Success && versionMatch.Success;
+                //Match idMatch = g.Match(package.Id);
+                //Match versionMatch = x.Match(package.Version.ToNormalizedString());
+                //bool matchSuccess = idMatch.Success && versionMatch.Success;
+                
 
                 /* Only add anything if the id and version globbing both match. */
-                if (matchSuccess)
+                //if (matchSuccess)
                 {
                     /* Do nothing if it is older than the cursor and exists. */
-                    if ((start > package.CommitTimeStamp || end <= package.CommitTimeStamp) && File.Exists(packagePath))
+                    //if ((start > package.CommitTimeStamp || end <= package.CommitTimeStamp) && File.Exists(packagePath))
+                    //{
+                    //    var tempPath = packagePath.Split('\\');
+                    //    cached.Add(tempPath[tempPath.Length - 1]);
+                    //}
+                    if (start < package.CommitTimeStamp && end >= package.CommitTimeStamp)
                     {
-                        Console.WriteLine($"[CACHE] {packagePath}");
-                    }
-                    else if (start < package.CommitTimeStamp && end >= package.CommitTimeStamp)
-                    {
-                        Console.WriteLine($"[GET] {packagePath}");
+                        added.Add(packageEnding);
                         if (_sourceStr.StartsWith("http"))
                         {
                             try
@@ -182,7 +190,7 @@ namespace FeedMirror
                                 continue;
                             }
                         }
-                        else if (_sourceStr.StartsWith("C:"))
+                        else if (_sourceStr.StartsWith("C:") || _sourceStr.StartsWith("c:"))
                         {
                             try
                             {
@@ -203,6 +211,26 @@ namespace FeedMirror
                     }
                 }
             }
+            /* Show results in a more compact, English, user-friendly manner. */
+            //var cachedMsg = "";
+            var addedMsg = "";
+            //if (cached.Count == 0)
+            //{
+            //    cachedMsg = "No results were found *outside* of the dates and parameters specified.\n";
+            //}
+            //else
+            //{
+            //    cachedMsg = "Results: " + cached[0] + " until " + cached[cached.Count - 1] + " did not fall into the parameters specified and were *not* downloaded.\n";
+            //}
+            if (added.Count == 0)
+            {
+                addedMsg = "Results: No results were found *inside* of the dates and parameters specified.\n";
+            }
+            else
+            {
+                addedMsg = "Results: \"" + added[0] + "\" until \"" + added[added.Count - 1] + "\" *did* fall into the date range and " + added.Count + " packages have been downloaded.\n";
+            }
+            Console.Write(addedMsg);
 
             return pushed;
         }

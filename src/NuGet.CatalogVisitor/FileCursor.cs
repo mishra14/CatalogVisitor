@@ -48,7 +48,7 @@ namespace NuGet.CatalogVisitor
         /// </summary>
         public void Save()
         {
-            File.WriteAllText(CursorPath, Date.ToString("o"));
+            File.WriteAllText(CursorPath, DateTimeOffset.UtcNow.ToString());
         }
 
         /// <summary>
@@ -63,8 +63,13 @@ namespace NuGet.CatalogVisitor
 
             if (File.Exists(path))
             {
+                Console.WriteLine("File Exists");
                 var cursorText = File.ReadAllText(path);
                 fileDate = DateTimeOffset.Parse(cursorText);
+            }
+            else
+            {
+                Console.WriteLine("File Does NOT Exist");
             }
 
             return new FileCursor()

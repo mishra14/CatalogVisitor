@@ -85,11 +85,11 @@ namespace FeedMirror
                     var verGlobPattern = fileName;
                     var idGlobPattern = version;
                     cursor.CursorPath = givenCursor;
-                    cursor.Date = new DateTimeOffset(2016, 7, 21, 0, 0, 0, new TimeSpan(-7, 0, 0));
+                    cursor.Date = DateTimeOffset.MinValue;
+                    //cursor.Date = new DateTimeOffset(2016, 3, 1, 1, 0, 0, new TimeSpan(-7, 0, 0));
 
                     /* cursor.Date now has correct date (replaces hardcoded w user date if applicable) */
-                    FileCursor.Load(cursor.CursorPath);
-                    //cursor.Date = new DateTimeOffset(2016, 7, 6, 9, 53, 30, new TimeSpan(-7, 0, 0));
+                    cursor = FileCursor.Load(cursor.CursorPath);
                     Console.WriteLine($"Mirroring packages from {context.FeedIndexJsonUrl} between {cursor.Date.ToLocalTime()} and {DateTimeOffset.UtcNow.ToLocalTime()}.");
 
                     PackageMirror myPM = new PackageMirror(context, mySource);
@@ -103,7 +103,6 @@ namespace FeedMirror
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(ex);
             }
         }

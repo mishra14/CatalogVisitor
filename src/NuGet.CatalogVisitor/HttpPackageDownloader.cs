@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using NuGet.Versioning;
 using System.IO;
 using System.Net.Http;
+using System.Collections.Generic;
 
 namespace NuGet.CatalogVisitor
 {
@@ -77,6 +78,8 @@ namespace NuGet.CatalogVisitor
 
             var packages = await hcv.GetPackages(start, end);
             bool useCache = true;
+            List<string> cached = new List<string>();
+            List<string> added = new List<string>();
 
             foreach (var package in packages)
             {
@@ -90,14 +93,34 @@ namespace NuGet.CatalogVisitor
                 /* Do nothing if it is older than the cursor and exists. */
                 if (useCache)
                 {
-                    Console.WriteLine($"[CACHE] {tempDirectory}");
+                    cached.Add(tempDirectory.Substring(34));
                 }
                 else
                 {
-                    Console.WriteLine($"[ADDING] {tempDirectory}");
+                    added.Add(tempDirectory.Substring(34));
                     await DownloadPackage(package.Id, package.Version, tempDirectory);
                 }
             }
+
+            var cachedMsg = "";
+            var addedMsg = "";
+            if (cached.Count == 0)
+            {
+                cachedMsg = "No results were found outside of the dates and parameters specified.";
+            }
+            else
+            {
+                cachedMsg = "Results: " + cached[0] + " until " + cached[cached.Count - 1] + " did not fall into the date range and were not downloaded.";
+            }
+            if (added.Count == 0)
+            {
+                addedMsg = "No results were found inside of the dates and parameters specified.";
+            }
+            else
+            {
+                addedMsg = "Results: " + added[0] + " until " + added[added.Count - 1] + " *did* fall into the date range and *were* downloaded.";
+            }
+            Console.Write(cachedMsg + addedMsg);
         }
     }
 }
