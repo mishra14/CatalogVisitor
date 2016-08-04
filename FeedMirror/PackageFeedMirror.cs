@@ -7,7 +7,7 @@ namespace FeedMirror
 {
     /// <summary>
     /// An exe that I can give to someone else 
-    /// that mirrors packages from one feed to another.
+    /// that mirrors packages from one feed to another
     /// </summary>
     class PackageFeedMirror
     {
@@ -20,20 +20,22 @@ namespace FeedMirror
         {
             try
             {
-                if (args.Length == 1 && (args[0] == "/?" || args[0] == "--help"))
+                /* Print out the help menu if there are no params, or a help command. */
+                if ((args.Length == 1 && (args[0] == "/?" || args[0] == "--help")) || args.Length == 0)
                 {
-                    Console.WriteLine("FeedMirror mirrors data from a given feed url (ex: https://api.nuget.org/v3/index.json)");
-                    Console.WriteLine("to a given url (myget feed or normal url) or hard drive (C:\\ format).");
-                    Console.WriteLine("You can also use globbing to specify a group of ids (ex: Altairis*)");
-                    Console.WriteLine("as well as to specify a group of versions (ex: 2.0.*).");
-                    Console.WriteLine("You can also specify a path to your own pre-existing cursor file and time (ex: C:\\myCursor.txt)");
-                    Console.WriteLine("(make sure this file is readable by our program,");
-                    Console.WriteLine(" ex: Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + \"\\mainMirrorCursor.txt\")");
-                    Console.WriteLine("as well as one that does not exist for which we will use Min Time.");
-                    Console.WriteLine("FeedMirror.exe (0) from feed (1) to feed (2) id globbing (3) version globbing (4) cursor file.");
-                    Console.WriteLine("Parameters 2, 3, and 4 are optional, but you cannot have 3 without 4, etc.");
+                    Console.WriteLine("Displays how to run the FeedMirror exe on the command line.\n");
+                    Console.WriteLine("FeedMirror.exe [from url] [to url/path] [id glob] [version glob] [cursor file]\n");
+                    Console.WriteLine("[from url]\tFeedMirror mirrors data from a given feed url (ex: https://api.nuget.org/v3/index.json)");
+                    Console.WriteLine("[to url/path]\tto a given url (myget feed or normal url) or hard drive (C:\\ format).");
+                    Console.WriteLine("[id glob]\tYou can also use globbing to specify a group of ids (ex: Altairis*)");
+                    Console.WriteLine("[version glob]\tas well as to specify a group of versions (ex: 2.0.*).");
+                    Console.WriteLine("[cursor file]\tYou can also specify a path to your own pre-existing cursor file and time (ex: C:\\myCursor.txt)");
+                    Console.WriteLine("\t\t***make sure this file is readable by our program,");
+                    Console.WriteLine("\t\tex: Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + \"\\mainMirrorCursor.txt\"");
+                    Console.WriteLine("\t\tas well as one that does not exist which we will create and use Min Time.\n");
+                    Console.WriteLine("\t\tParameters 3, 4, and 5 are optional, but you cannot have 3 without 4, etc.\n");
                 }
-                else if (args.Length > 5)
+                else if (args.Length > 5 || args.Length == 1)
                 {
                     Console.WriteLine($"Incorrect # of args: {args.Length}");
                 }
