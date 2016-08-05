@@ -99,8 +99,9 @@ namespace FeedMirror
                     /* Use version with id and version globbing. */
                     var pushed = await myPM.MirrorPackages(cursor.Date, DateTimeOffset.UtcNow, fileName, version);
 
-                    cursor.Save();
-                    Console.WriteLine($"{pushed} pushed.");
+                    /* Save date when last item was downloaded to cursor file. */
+                    cursor.Save(pushed.Item2);
+                    Console.WriteLine($"{pushed.Item1} pushed.");
                 }
             }
             catch (Exception ex)

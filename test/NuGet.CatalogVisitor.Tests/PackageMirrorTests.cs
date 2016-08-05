@@ -85,7 +85,7 @@ namespace NuGet.CatalogVisitor.Tests
             var pushed = await myPM.MirrorPackages(DateTimeOffset.MinValue, DateTimeOffset.UtcNow, "Altairis*", "2.*");
 
             // Assert
-            Assert.Equal(1, pushed);
+            Assert.Equal(1, pushed.Item1);
         }
     }
 }

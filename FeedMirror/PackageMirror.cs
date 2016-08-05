@@ -124,10 +124,12 @@ namespace FeedMirror
         /// <param name="start"></param>
         /// <param name="end"></param>
         /// <returns></returns>
-        public async Task<int> MirrorPackages(DateTimeOffset start, DateTimeOffset end, string packagePattern = "*", string versionPattern = "*")
+        public async Task<Tuple<int, DateTimeOffset>> MirrorPackages(DateTimeOffset start, DateTimeOffset end, string packagePattern = "*", string versionPattern = "*")
         {
             // Get packages
             HttpCatalogVisitor hcv = new HttpCatalogVisitor(_context);
+            DateTimeOffset returnDate = DateTimeOffset.UtcNow;
+
             //var packages = await hcv.GetPackages(start, end);
             var packages = await hcv.GetPackages(start, end, packagePattern, versionPattern);
 
@@ -232,7 +234,9 @@ namespace FeedMirror
             }
             Console.Write(addedMsg);
 
-            return pushed;
+            var returnTuple = Tuple.Create(pushed, returnDate);
+
+            return returnTuple;
         }
 
         /// <summary>

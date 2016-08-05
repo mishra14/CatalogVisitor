@@ -381,10 +381,7 @@ namespace NuGet.CatalogVisitor
                 /* items.Count when you have time */
                 for (int i = 0; i < items.Count; i++)
                 {
-                    if (i % 100 == 0)
-                    {
-                        Console.Write("\r{0}    ", i);
-                    }
+                    Console.Write("\r{0}    ", i);
 
                     /* Go through each item in 2nd level and parse out commit time and url, then write to file. */
                     pageCommitTime = items[i]["commitTimeStamp"].ToObject<DateTimeOffset>();
@@ -494,7 +491,7 @@ namespace NuGet.CatalogVisitor
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Console.WriteLine("\n" + ex.ToString());
                 throw;
             }
         }

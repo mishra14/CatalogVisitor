@@ -52,6 +52,31 @@ namespace NuGet.CatalogVisitor
         }
 
         /// <summary>
+        /// Save Date to current time (DateTimeOffset.UtcNow).
+        /// </summary>
+        public void Save(DateTimeOffset date)
+        {
+            try
+            {
+                if (File.Exists(CursorPath))
+                {
+                    File.WriteAllText(CursorPath, date.ToString());
+                }
+                else
+                {
+                    Directory.CreateDirectory(CursorPath);
+                    File.WriteAllText(CursorPath, date.ToString());
+                }
+            }
+            catch
+            {
+                var newPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "\\mainMirrorCursor.txt";
+                File.WriteAllText(newPath, date.ToString());
+                Console.WriteLine($"Your file could not be written to. Wrote current date/time to {newPath}. Please use this for future cursor file.");
+            }
+        }
+
+        /// <summary>
         /// Sets date to .txt file.
         /// If .txt file doesn't exist, Date is now DateTimeOffset.MinValue.
         /// </summary>
@@ -63,13 +88,13 @@ namespace NuGet.CatalogVisitor
 
             if (File.Exists(path))
             {
-                Console.WriteLine("File Exists");
+                Console.WriteLine("Cursor file exists. Starting with file date/time. Will replace with current date/time.");
                 var cursorText = File.ReadAllText(path);
                 fileDate = DateTimeOffset.Parse(cursorText);
             }
             else
             {
-                Console.WriteLine("File Does NOT Exist");
+                Console.WriteLine("Cursor file does NOT exist. Starting with 01/01/0001. Will create file with current date/time.");
             }
 
             return new FileCursor()
