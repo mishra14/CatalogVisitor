@@ -64,8 +64,18 @@ namespace NuGet.CatalogVisitor
                 }
                 else
                 {
-                    Directory.CreateDirectory(CursorPath);
-                    File.WriteAllText(CursorPath, date.ToString());
+                    var i = CursorPath.LastIndexOf('\\');
+                    var subDir = CursorPath.Substring(0, i + 1);
+
+                    if (!Directory.Exists(subDir))
+                    {
+                        Directory.CreateDirectory(subDir);
+                        File.WriteAllText(CursorPath, date.ToString());
+                    }
+                    else // C:\\filename.txt didn't exist before.
+                    {
+                        File.WriteAllText(CursorPath, date.ToString());
+                    }
                 }
             }
             catch

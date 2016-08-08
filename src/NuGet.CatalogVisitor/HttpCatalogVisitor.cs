@@ -376,12 +376,14 @@ namespace NuGet.CatalogVisitor
                 var pageCommitTime = DateTimeOffset.MinValue;
                 List<string> cached = new List<string>();
                 List<string> added = new List<string>();
-
-                Console.WriteLine("Now on input page #: ");
+                
                 /* items.Count when you have time */
                 for (int i = 0; i < items.Count; i++)
                 {
-                    Console.Write("\r{0}    ", i);
+                    Console.SetCursorPosition(0, Console.CursorTop);
+                    Console.Write("Searching catalog page#: {0} -- Found {1} packages.", i, newList.Count);
+
+                    //Console.Write("\r{0}    {1}    ", i, newList.Count);
 
                     /* Go through each item in 2nd level and parse out commit time and url, then write to file. */
                     pageCommitTime = items[i]["commitTimeStamp"].ToObject<DateTimeOffset>();
@@ -466,26 +468,29 @@ namespace NuGet.CatalogVisitor
                             }
                         }
                     }
+
+                    //Console.Write("\t\tFound packages: ");
+                    //Console.Write("\r{0}    ", newList.Count);
                 }
-                var cachedMsg = "";
-                var addedMsg = "";
-                if (cached.Count == 0)
-                {
-                    cachedMsg = "No results were found/returned outside of the dates and parameters specified.\n";
-                }
-                else
-                {
-                    cachedMsg = "HCV Returned: " + cached[0] + " until " + cached[cached.Count - 1] + " did *not* fall into the date range and were not returned.\n";
-                }
-                if (added.Count == 0)
-                {
-                    addedMsg = "No results were found/returned inside of the dates and parameters specified.\n";
-                }
-                else
-                {
-                    addedMsg = "HCV Returned: " + added[0] + " until " + added[added.Count - 1] + " (" + added.Count + " pages) *did* fall into the date range and some packages *may have* been returned.\n";
-                }
-                Console.Write(cachedMsg + addedMsg);
+                //var cachedMsg = "";
+                //var addedMsg = "";
+                //if (cached.Count == 0)
+                //{
+                //    cachedMsg = "No results were cached outside of the dates and parameters specified.\n";
+                //}
+                //else
+                //{
+                //    cachedMsg = "HCV Returned: " + cached[0] + " until " + cached[cached.Count - 1] + " did *not* fall into the date range and were cached.\n";
+                //}
+                //if (added.Count == 0)
+                //{
+                //    addedMsg = "No results were found/returned inside of the dates and parameters specified.\n";
+                //}
+                //else
+                //{
+                //    addedMsg = "HCV Returned: " + added[0] + " until " + added[added.Count - 1] + " (" + added.Count + " pages) *did* fall into the date range and some packages *may have* been returned.\n";
+                //}
+                //Console.Write("\n" + cachedMsg + addedMsg);
 
                 return newList;
             }

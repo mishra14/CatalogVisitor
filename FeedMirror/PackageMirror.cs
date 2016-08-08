@@ -133,8 +133,8 @@ namespace FeedMirror
             //var packages = await hcv.GetPackages(start, end);
             var packages = await hcv.GetPackages(start, end, packagePattern, versionPattern);
 
-            Console.WriteLine($"Found {packages.Count} packages.");
-            Console.WriteLine($"Pushing");
+            //Console.WriteLine($"Found {packages.Count} packages.");
+            Console.WriteLine("\nPushing.");
 
             // Push packages
             var pushResource = _outputSource.GetResource<PackageUpdateResource>();
