@@ -1,0 +1,165 @@
+DONE – 
+1-	Behavior with no params
+C:\Users\rrelyea\Desktop\2016-08-01>FeedMirror.exe
+File Does NOT Exist
+Mirroring packages from https://api.nuget.org/v3/index.json between 1/1/0001 12:00:00 AM -08:00 and 8/3/2016 11:44:45 AM -07:00.
+Now on input page #:
+0    ^C
+ 
+Ususually command line apps will just do "/?" if it has no params.
+ 
+ 
+ 
+ 
+DONE -
+2-	Formatting of /?
+FeedMirror mirrors data from a given feed url (ex: https://api.nuget.org/v3/index.json)
+to a given url (myget feed or normal url) or hard drive (C:\ format).
+You can also use globbing to specify a group of ids (ex: Altairis*)
+as well as to specify a group of versions (ex: 2.0.*).
+You can also specify a path to your own pre-existing cursor file and time (ex: C:\myCursor.txt)
+(make sure this file is readable by our program,
+ex: Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "\mainMirrorCursor.txt")
+as well as one that does not exist for which we will use Min Time.
+FeedMirror.exe (0) from feed (1) to feed (2) id globbing (3) version globbing (4) cursor file.
+Parameters 2, 3, and 4 are optional, but you cannot have 3 without 4, etc.
+ 
+Likely we should rewrite similarly to "dir /?" or some other good model (perhaps talk to Rohit/Justin)
+ 
+ 
+ 
+Started command at 11:49am
+C:\Users\rrelyea\Desktop\2016-08-01>feedmirror https://api.nuget.org/v3/index.json c:\kinectPackages Microsoft.Kinect* * c:\kinectPackages\cursor.txt
+File Does NOT Exist
+Mirroring packages from https://api.nuget.org/v3/index.json between 1/1/0001 12:00:00 AM -08:00 and 8/3/2016 11:48:57 AM -07:00.
+Now on input page #:
+ 
+ 
+Done –
+3-	Feedback: File Does NOT Exist - probably showed up because the cursor file didn't exist.
+Need to determine right behavior.
+Give message that the cursor file doesn't exist yet… starting with the beginning of time…and will write current time into the cursor file at the end of operation.
+ 
+
+Done-
+4-	Feedback: cursor write time?
+Now you write the time at the end, as we discussed, you should write the time of the download of the last catalog page.
+ 
+Done-
+5-	Feedback: wouldn't the page counter be better to update every page…instead of every 100.
+ 
+ 
+Command finished at topped around 12:07…but rob had selected some text…so don't exact timing.
+ 
+Done-
+6-	Feedback: cursor file couldn't be written, since the directory didn't exist yet.
+
+Done- 
+7-	Feedback: if cursor file can't be written, I have to redo the search.
+ 
+ 
+C:\Users\rrelyea\Desktop\2016-08-01>feedmirror https://api.nuget.org/v3/index.json c:\kinectPackages Microsoft.Kinect* * c:\kinectPackages\cursor.txt
+File Does NOT Exist
+Mirroring packages from https://api.nuget.org/v3/index.json between 1/1/0001 12:00:00 AM -08:00 and 8/3/2016 11:48:57 AM -07:00.
+Now on input page #:
+1700    No results were found/returned outside of the dates and parameters specified.
+HCV Returned: page0.json until page1787.json (1788 pages) *did* fall into the date range and some packages *may have* been returned.
+Found 26 packages.
+Pushing
+Results: "Mirror-Microsoft.Kinect.Face-2.0.1408-publicpreview.nupkg" until "Mirror-Microsoft.Kinect.VisualGestureBuilder.x64-2.0.1410.19000.nupkg" *did* fall into the date range and 26 packages have been downloaded.
+System.IO.DirectoryNotFoundException: Could not find a part of the path 'c:\kinectPackages\cursor.txt'.
+   at System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   at System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)
+   at System.IO.StreamWriter.CreateFile(String path, Boolean append, Boolean checkHost)
+   at System.IO.StreamWriter..ctor(String path, Boolean append, Encoding encoding, Int32 bufferSize, Boolean checkHost)
+   at System.IO.File.InternalWriteAllText(String path, String contents, Encoding encoding, Boolean checkHost)
+   at System.IO.File.WriteAllText(String path, String contents)
+   at NuGet.CatalogVisitor.FileCursor.Save() in C:\Users\t-kaswan\Documents\Visual Studio 2015\Projects\CatalogVisitor\src\NuGet.CatalogVisitor\FileCursor.cs:line 51
+   at FeedMirror.PackageFeedMirror.<Run>d__1.MoveNext() in C:\Users\t-kaswan\Documents\Visual Studio 2015\Projects\CatalogVisitor\FeedMirror\PackageFeedMirror.cs:line 100
+ 
+ 
+Done-
+8-	Feedback: unsure of meaning or purpose of: No results were found/returned outside of the dates and parameters specified.
+ 
+On: HCV Returned: page0.json until page1787.json (1788 pages) *did* fall into the date range and some packages *may have* been returned.
+ 
+Done-
+9-	Feedback:
+Take:
+Now on input page #:  1788
+ 
+And change it to:
+Searching catalog page #1788  -- Found 26 packages.
+ 
+Done-
+10-	Feedback:
+Then you could remove the line that starts with HCV. Also remove the Found 25 packages line…since you now have that in your status writing to the console.
+ 
+
+Done (ish) - 
+11-	Test/Finish API nupkg.
+
+(C:\Users\t-kaswan\Documents\Visual Studio 2015\Projects\CatalogVisitor\src\NuGet.CatalogVisitor>C:\Users\t-kaswan\Desktop\nuget.exe pack NuGet.CatalogVisitor.csproj -version 1.0.0-beta)
+
+
+
+Stretch Goals:
+ 
+12-	Feedback: if somebody wanted to download 10 different id/version globs, maybe it would be useful to be able to pass in a list of those to feedmirror.
+It might also be useful to allow feedmirrror to generate those types of lists.
+ 
+ 
+13-	Feedback: We've realized that the catalog page walk is only needed (for feedmirror) when you have globbing in id and/or version.
+If somebody looked for a specific ID and a specific version. Feedmirror should be able to do that very quickly.
+ 
+ 
+Started another command at 12:28 to redo.
+ 
+14-	Feedback: why does it take me 17min, while it took you 3 minutes?
+ 
+15-	Related feedback: we appear to not be caching pages. Would it be wise to have them cached on the local drive…how we would design that?
+
+
+
+8/10/16 Feedback:
+My raw notes from running it…
+ 
+Z:\t-kaswan\feedmirror\2016-08-09>feedmirror /?
+Displays how to run the FeedMirror exe on the command line.
+ 
+FeedMirror.exe [from url] [to url/path] [id glob] [version glob] [cursor file]
+ 
+[from url]      FeedMirror mirrors data from a given feed url (ex: https://api.nuget.org/v3/index.json)
+[to url/path]   to a given url (myget feed or normal url) or hard drive (C:\ format).
+[id glob]       You can also use globbing to specify a group of ids (ex: Altairis*)
+[version glob]  as well as to specify a group of versions (ex: 2.0.*).
+[cursor file]   You can also specify a path to your own pre-existing cursor file and time (ex: C:\myCursor.txt)
+                ***make sure this file is readable by our program,
+                ex: Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "\mainMirrorCursor.txt"
+                as well as one that does not exist which we will create and use Min Time.
+ 
+                Parameters 3, 4, and 5 are optional, but you cannot have 3 without 4, etc.
+ 
+RR: looks much better than before!
+ 
+it as of 8/9/2016 at 3:19pm
+3:21pm -- on page 308
+3:29pm -- on page 1150
+ 
+Z:\t-kaswan\feedmirror\2016-08-09>feedmirror https://api.nuget.org/v3/index.json c:\packagesFromNuGet Microsoft.Kinect* * c:\temp\cursor.txt
+Cursor file does NOT exist. Starting with 01/01/0001. Will create file with current date/time.
+Mirroring packages from https://api.nuget.org/v3/index.json between 1/1/0001 12:00:00 AM -08:00 and 8/9/2016 3:18:27 PM -07:00.
+Searching catalog page#: 1798 -- Found 26 packages.
+Pushing.
+Results: "Mirror-Microsoft.Kinect.Face-2.0.1408-publicpreview.nupkg" until "Mirror-Microsoft.Kinect.VisualGestureBuilder.x64-2.0.1410.19000.nupkg" *did* fall into the date range and 26 packages have been downloaded.
+26 pushed.
+ 
+RR: output while it was running looked much better.
+Issues I observed:
+1)      When this was done running, c:\packagesFromNuGet didn’t exist  [note – just like the other times, it didn’t exist when I ran the command]
+2)      The “searching catalog page#: nnn” line would be much better if it said searching catalog page#: nnn / 1798 …”  right now the user has no idea how long it is going to take.
+3)      Speed – please work to understand the way to fix the ability to cache the page*.json locally, so that searches can be faster than ~17min each (on a machine like mine)
+ 
+I would prioritize these as #1, #3, #2.
+
