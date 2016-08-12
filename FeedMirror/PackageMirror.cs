@@ -294,7 +294,8 @@ namespace FeedMirror
                 myUrl = myUrl.Replace("{commitTimeStamp}", package.CommitTimeStamp.ToString());
 
                 // Create to file path
-                var newFilePath = _context.IncomingFeedUrl + "Mirror-" + package.Id + "-" + package.Version.ToNormalizedString() + ".nupkg";
+                //var newFilePath = _context.IncomingFeedUrl + "Mirror-" + package.Id + "-" + package.Version.ToNormalizedString() + ".nupkg";
+                var newFilePath = myUrl + "Mirror-" + package.Id + "-" + package.Version.ToNormalizedString() + ".nupkg";
 
                 // Copy from from url to to file path
                 using (var stream = await client.GetStreamAsync(myUrl))
@@ -304,9 +305,9 @@ namespace FeedMirror
                 }
 
                 // Clean up
-                File.Delete(packagePath);
+                //File.Delete(packagePath);
             }
-            catch (Exception ex)
+            catch
             {
                 // Do nothing.
             }

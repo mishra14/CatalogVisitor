@@ -88,6 +88,7 @@ namespace FeedMirror
                     var idGlobPattern = version;
                     cursor.CursorPath = givenCursor;
                     cursor.Date = DateTimeOffset.MinValue;
+                    context.IncomingFeedUrl = output;
                     //cursor.Date = new DateTimeOffset(2016, 3, 1, 1, 0, 0, new TimeSpan(-7, 0, 0));
 
                     /* cursor.Date now has correct date (replaces hardcoded w user date if applicable) */

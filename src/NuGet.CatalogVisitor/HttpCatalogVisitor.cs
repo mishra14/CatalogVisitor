@@ -215,6 +215,9 @@ namespace NuGet.CatalogVisitor
                 /* items.Count when you have time */
                 for (int i = 0; i < items.Count; i++)
                 {
+                    Console.SetCursorPosition(0, Console.CursorTop);
+                    Console.Write("Searching catalog page#: {0} -- Found {1} packages.", i, newList.Count);
+
                     /* Go through each item in 2nd level and parse out commit time and url, then write to file. */
                     pageCommitTime = items[i]["commitTimeStamp"].ToObject<DateTimeOffset>();
                     Uri newUri = new Uri((string)items[i]["@id"]);
@@ -299,21 +302,21 @@ namespace NuGet.CatalogVisitor
                 var addedMsg = "";
                 if (cached.Count == 0)
                 {
-                    cachedMsg = "No results were found outside of the dates and parameters specified.";
+                    cachedMsg = "No results were found *outside* of the dates and parameters specified.\n";
                 }
                 else
                 {
-                    cachedMsg = "Results: " + cached[0] + " until " + cached[cached.Count - 1] + " did not fall into the date range and were not downloaded.";
+                    cachedMsg = "Results: " + cached[0] + " until " + cached[cached.Count - 1] + " did *not* fall into the date range and were not downloaded.\n";
                 }
                 if (added.Count == 0)
                 {
-                    addedMsg = "No results were found inside of the dates and parameters specified.";
+                    addedMsg = "No results were found *inside* of the dates and parameters specified.";
                 }
                 else
                 {
                     addedMsg = "Results: " + added[0] + " until " + added[added.Count - 1] + " *did* fall into the date range and *were* downloaded.";
                 }
-                Console.Write(cachedMsg + addedMsg);
+                Console.WriteLine(cachedMsg + addedMsg);
 
                 return newList;
             }
@@ -536,6 +539,9 @@ namespace NuGet.CatalogVisitor
             /* items.Count when you have time */
             for (int i = 0; i < items.Count; i++)
             {
+                Console.SetCursorPosition(0, Console.CursorTop);
+                Console.Write("Searching catalog page#: {0} -- Found {1} packages.", i, newList.Count);
+
                 /* Go through each item in 2nd level and parse out commit time and url, then write to file. */
                 pageCommitTime = items[i]["commitTimeStamp"].ToObject<DateTimeOffset>();
                 Uri newUri = new Uri((string)items[i]["@id"]);
@@ -611,21 +617,21 @@ namespace NuGet.CatalogVisitor
             var addedMsg = "";
             if (cached.Count == 0)
             {
-                cachedMsg = "No results were found outside of the dates and parameters specified.";
+                cachedMsg = "No results were found *outside* of the dates and parameters specified.\n";
             }
             else
             {
-                cachedMsg = "Results: " + cached[0] + " until " + cached[cached.Count - 1] + " did not fall into the date range and were not downloaded.";
+                cachedMsg = "Results: " + cached[0] + " until " + cached[cached.Count - 1] + " did *not* fall into the date range and were not downloaded.\n";
             }
             if (added.Count == 0)
             {
-                addedMsg = "No results were found inside of the dates and parameters specified.";
+                addedMsg = "No results were found *inside* of the dates and parameters specified.";
             }
             else
             {
                 addedMsg = "Results: " + added[0] + " until " + added[added.Count - 1] + " *did* fall into the date range and *were* downloaded.";
             }
-            Console.Write(cachedMsg + addedMsg);
+            Console.WriteLine(cachedMsg + addedMsg);
 
             return newList;
         }
@@ -715,6 +721,9 @@ namespace NuGet.CatalogVisitor
                 /* items.Count when you have time */
                 for (int i = 0; i < items.Count; i++)
                 {
+                    Console.SetCursorPosition(0, Console.CursorTop);
+                    Console.Write("Searching catalog page#: {0} -- Found {1} packages.", i, newList.Count);
+
                     /* Go through each item in 2nd level and parse out commit time and url, then write to file. */
                     pageCommitTime = items[i]["commitTimeStamp"].ToObject<DateTimeOffset>();
                     Uri newUri = new Uri((string)items[i]["@id"]);

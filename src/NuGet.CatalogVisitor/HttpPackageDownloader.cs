@@ -106,21 +106,21 @@ namespace NuGet.CatalogVisitor
             var addedMsg = "";
             if (cached.Count == 0)
             {
-                cachedMsg = "No results were found outside of the dates and parameters specified.";
+                cachedMsg = "No results were found *outside* of the dates and parameters specified.\n";
             }
             else
             {
-                cachedMsg = "Results: " + cached[0] + " until " + cached[cached.Count - 1] + " did not fall into the date range and were not downloaded.";
+                cachedMsg = "Results: " + cached[0] + " until " + cached[cached.Count - 1] + " did *not* fall into the date range and were not downloaded.\n";
             }
             if (added.Count == 0)
             {
-                addedMsg = "No results were found inside of the dates and parameters specified.";
+                addedMsg = "No results were found *inside* of the dates and parameters specified.";
             }
             else
             {
                 addedMsg = "Results: " + added[0] + " until " + added[added.Count - 1] + " *did* fall into the date range and *were* downloaded.";
             }
-            Console.Write(cachedMsg + addedMsg);
+            Console.WriteLine(cachedMsg + addedMsg);
         }
     }
 }
