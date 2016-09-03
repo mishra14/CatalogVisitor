@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using System.IO;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
 
 namespace NuGet.CatalogVisitor
 {
@@ -379,7 +379,7 @@ namespace NuGet.CatalogVisitor
                 var pageCommitTime = DateTimeOffset.MinValue;
                 List<string> cached = new List<string>();
                 List<string> added = new List<string>();
-                
+
                 /* items.Count when you have time */
                 for (int i = 0; i < items.Count; i++)
                 {
@@ -514,6 +514,7 @@ namespace NuGet.CatalogVisitor
         {
             /* Create new HttpCatalogVisitor object to return. */
             List<PackageMetadata> newList = new List<PackageMetadata>();
+            List<PackageMetadata> tempList = new List<PackageMetadata>();
 
             string json = await GetCatalogIndexUri(new Uri(_context.FeedIndexJsonUrl));
 
@@ -536,6 +537,8 @@ namespace NuGet.CatalogVisitor
             List<string> cached = new List<string>();
             List<string> added = new List<string>();
 
+            var count = 0;
+
             /* items.Count when you have time */
             for (int i = 0; i < items.Count; i++)
             {
@@ -550,7 +553,6 @@ namespace NuGet.CatalogVisitor
                 JObject root2 = null;
                 bool useCache = true;
                 string json2 = null;
-                
 
                 /* Do nothing if it is older than the cursor and exists. */
                 if (start < pageCommitTime && end >= pageCommitTime)
@@ -597,11 +599,24 @@ namespace NuGet.CatalogVisitor
                                         {
                                             newList.Remove(containedElement);
                                             newList.Add(metadata);
+                                            tempList.Remove(containedElement);
+                                            tempList.Add(metadata);
+                                            if (tempList.Count > 1000)
+                                            {
+                                                persistPackageList(tempList, count++);
+                                                tempList.Clear();
+                                            }
                                         }
                                     }
                                     else
                                     {
                                         newList.Add(metadata);
+                                        tempList.Add(metadata);
+                                        if (tempList.Count > 1000)
+                                        {
+                                            persistPackageList(tempList, count++);
+                                            tempList.Clear();
+                                        }
                                     }
                                 }
                             }
@@ -634,6 +649,24 @@ namespace NuGet.CatalogVisitor
             Console.WriteLine(cachedMsg + addedMsg);
 
             return newList;
+        }
+
+        private void persistPackageList(List<PackageMetadata> tempList, int counter)
+        {
+            Console.WriteLine("Adding 1000 package data into F:\\packagelog\\");
+            var logFilePath = Path.Combine(@"F:\PackageLogs", string.Concat(counter, ".txt"));
+            if (!File.Exists(logFilePath))
+            {
+                File.Create(logFilePath).Close();
+            }
+            using (StreamWriter file = new StreamWriter(logFilePath))
+            {
+                foreach (var metadata in tempList)
+                {
+                    var packageData = string.Format("{0} {1} {2}", metadata.Id, metadata.Version, metadata.CommitTimeStamp);
+                    file.WriteLine(packageData);
+                }
+            }
         }
 
         ///// <summary>
